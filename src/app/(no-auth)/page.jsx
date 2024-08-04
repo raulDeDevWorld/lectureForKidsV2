@@ -1,14 +1,8 @@
 
-
-
 'use client'
-import { useState, useRef } from 'react'
-import SpeechToText from '@/components/SpeechToText'
-import useSpeechToText from 'react-hook-speech-to-text';
+
 import { fabulas } from '@/db/fabulas';
-import raejs from '@jodacame/raejs'
 import Link from 'next/link';
-import {generateUUID} from '@/utils/UIDgenerator'
 
 
 function Home() {
@@ -20,115 +14,6 @@ function Home() {
 
 
 
-    // import Rae from 'rae';
-
-    // const raeClient = Rae.create();
-
-    // raeClient.search("repositorio").then((match) => console.log(match))
-
-
-
-
-
-
-
-
-
-
-
-
-    const [stories, setStories] = useState({
-        title: 'The tiger and the lion',
-        img: '/storieOne.png',
-        // content: [
-        //     "Once upon a time, there lived a tigger and a lion in a jungle. The lion, being the King of the jungle was respected and loved by all other animals. He was always very helpful and looked after the entire jungle. The tiger, on the other hand, was very jealous and selfish in nature. He thought he was the most powerful animal in the jungle and deserved to be the King. Therefore, he thought of challenging the lion and wanted to show his power to all the animals."
-        // ],
-        content: ["Pensó un día un lobo cambiar instante"]
-    })
-    // console.log(es)
-    const {
-        error,
-        interimResult,
-        isRecording,
-        results,
-        startSpeechToText,
-        stopSpeechToText,
-    } = useSpeechToText({
-        continuous: true,
-        useLegacyResults: false,
-        timeout: 1,
-        speechRecognitionProperties: {
-            lang: 'es-MX',
-            interimResults: true // Allows for displaying real-time speech results
-        }
-    });
-
-
-    const [stories2, setStories2] = useState()
-    const [select, setSelect] = useState(null);
-    const [value, setValue] = useState('');
-    const [lecture, setLecture] = useState([]);
-    const refLecture = useRef([])
-    const refLecture2 = useRef([])
-    const refLecture3 = useRef('')
-
-
-
-
-
-
-
-
-
-    const vocabulary = {
-        tiger: {
-            mean: 'Tigre',
-            example: 'the tiger is cool'
-        }
-    }
-
-
-
-
-
-    async function handlerSelect(i) {
-        console.log(i)
-        const res = await fetch('/api', {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                word: i
-            })
-        })
-
-        const data = await res.json()
-
-
-        setSelect(data.data)
-        // const random = await new RAE().getRandomWord(); //fetches a random word
-
-
-
-        // const rae = new RAE(true)
-
-        // raeClient.search("repositorio").then((match) => setSelect(match))
-        // const rae = new RAE();
-        // const search = await rae.searchWord('hola');
-        // const wordId = search.getRes()[0].getId(); // gets 'hola' word id
-
-        // const result = await rae.fetchWord(wordId); // fetches the word as object
-        // const definitions = result.getDefinitions(); // gets all 'hola' definitions as Defintion[]
-        // const first = definitions[0].getDefinition(); // gets the first 'hola' definition as string
-
-    }
-
-    
-    // console.log(fabulas.reduce((acc, i)=>{
-    //   return  {...acc,[generateUUID()]: i}
-    // }, {}))
     return (
         <div className='relative bg-gradient-to-tr from-indigo-400 from-10% via-sky-500 via-30% to-emerald-500 to-90% min-h-screen w-screen p-10'>
             <h1 className='text-white text-center text-[16px] '>Fabulas 3000</h1>

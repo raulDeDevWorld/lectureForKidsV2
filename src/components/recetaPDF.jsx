@@ -43,15 +43,6 @@ const PDFView = ({ dbUrl, style }) => {
 
         const isWebview = () => {
 
-            if (typeof window === undefined) { return false };
-
-            let navigator = window.navigator;
-
-            const standalone = navigator.standalone;
-            const userAgent = navigator.userAgent.toLowerCase();
-            const safari = /safari/.test(userAgent);
-            const ios = /iphone|ipod|ipad/.test(userAgent);
-            return ios ? !standalone && !safari : userAgent.includes('wv');
         }
         if (isWebview()) {
             router.pathname !== '/DownloaderPDF' && window.open(`https://collage-two.vercel.app/DownloaderPDF?dataUrl=${dataUrl}&uid=${user.uid}`, '_system')

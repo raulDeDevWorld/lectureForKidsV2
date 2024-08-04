@@ -5,14 +5,10 @@
 import { useState, useRef } from 'react'
 import SpeechToText from '@/components/SpeechToText'
 import useSpeechToText from 'react-hook-speech-to-text';
-// import Rae from 'rae/src';
+import { fabulas } from '@/db/fabulas';
 import raejs from '@jodacame/raejs'
-// import es from 'dictionary-es'
-// import nspell from 'nspell'
-
-// const spell = nspell(en)
-// console.log(spell.correct('color'))
-// console.log(spell.correct('colour'))
+import Link from 'next/link';
+import {generateUUID} from '@/utils/UIDgenerator'
 
 
 function Home() {
@@ -65,7 +61,7 @@ function Home() {
             lang: 'es-MX',
             interimResults: true // Allows for displaying real-time speech results
         }
-    });     
+    });
 
 
     const [stories2, setStories2] = useState()
@@ -81,16 +77,7 @@ function Home() {
 
 
 
-    // const {
-    //   transcript,
-    //   listening,
-    //   resetTranscript,
-    //   browserSupportsSpeechRecognition
-    // } = useSpeechRecognition();
 
-    // if (!browserSupportsSpeechRecognition) {
-    //   return <span>Browser doesn't support speech recognition.</span>;
-    // }
 
 
     const vocabulary = {
@@ -99,29 +86,11 @@ function Home() {
             example: 'the tiger is cool'
         }
     }
-    //   const stories = {
-    //     title: 'The tiger and the lion',
-    //     img: '/storieOne.png',
-    //     content: [
-    //       "Once upon a time, there lived a tiger and a lion in a jungle. The lion, being the King of the jungle was respected and loved by all other animals. He was always very helpful and looked after the entire jungle. The tiger, on the other hand, was very jealous and selfish in nature. He thought he was the most powerful animal in the jungle and deserved to be the King. Therefore, he thought of challenging the lion and wanted to show his power to all the animals."
-    //     ]
-    //   }
-    // const  elNavegadorEsCompatible = ()=>{
-    //   if (window && window !== 'undefined' && navigator && navigator.userAgent.indexOf("Chrome") || 
-    //     navigator.userAgent.indexOf("Edge") ||  
-    //     navigator.userAgent.indexOf("Safari")) return true;
-    //   alert('El Navegador no es compatible con el Reconocimiento de voz');
-    //   return  false;
-    // }
-    // elNavegadorEsCompatible()
 
 
 
 
-    // const raeClient = Rae.create();
-    // raeClient.search("repositorio").then((match) => console.log(match))
 
-    // console.log(raeClient)
     async function handlerSelect(i) {
         console.log(i)
         const res = await fetch('/api', {
@@ -156,39 +125,53 @@ function Home() {
 
     }
 
-    console.log(select)
-
+    
+    // console.log(fabulas.reduce((acc, i)=>{
+    //   return  {...acc,[generateUUID()]: i}
+    // }, {}))
     return (
-        <div className='relative bg-gradient-to-tr from-indigo-500 from-10% via-sky-500 via-30% to-emerald-500 to-90% h-screen w-screen p-10'>
-            <div className='bg-white p-10 rounded-md'>
-                <h1 className='font-bold text-[20px] text-center text-black'>{stories.title.split(' ').map(i => <span className='cursor-pointer hover:bg-yellow-500' onClick={() => handlerSelect(i)}>{i + ' '}</span>)}</h1>
-                <div className='flex justify-center p-5'>
-                    <img src={stories.img} className='relative left-0 right-0 mx-auto w-[200px] text-center' alt="" />
-                </div>
-                {stories.content.map((i) => {
-                    console.log(refLecture3.current.value !== undefined && refLecture2.current.value)
-                    // console.log(refLecture2.current.value !== undefined &&  i.toLowerCase().includes(refLecture2.current.value[index].toLowerCase() +i))
-                    return <p>{i.split(' ').map((i, index) => <span className={`cursor-pointer hover:bg-yellow-500 
-            ${refLecture2.current.value !== undefined && refLecture2.current.value[index] !== undefined && refLecture2.current.value[index !== 0 ? index - 1 : index] !== undefined && refLecture2.current.value[index > 1 ? index - 2 : index] !== undefined && i.toLowerCase().includes(refLecture2.current.value[index].toLowerCase()) ? 'bg-green-500' : (refLecture2.current.value !== undefined && refLecture2.current.value[index] && refLecture2.current.value[index] == '----' ? 'bg-red-500' : '')}
-            ${index !== 0 && refLecture2.current.value !== undefined && refLecture2.current.value[index - 1] !== undefined && interimResult !== undefined && interimResult.toLowerCase().includes(i.toLowerCase()) ? 'bg-green-500' : ''}
-                        ${index === 0 && interimResult !== undefined && interimResult.toLowerCase().includes(i.toLowerCase()) ? 'bg-green-500' : ''}
+        <div className='relative bg-gradient-to-tr from-indigo-400 from-10% via-sky-500 via-30% to-emerald-500 to-90% min-h-screen w-screen p-10'>
+            <h1 className='text-white text-center text-[16px] '>Fabulas 3000</h1>
 
-            `} onClick={() => handlerSelect(i)}>{i + ' '}</span>)}</p>
-                })}
+            <div className='grid grid-cols-5'>
+                {
+                    Object.entries(fabulas).map((i, index) => {
+                        return <Link href={`Lecture?item=${i[0]}`}> <div className='relative  w-[150px] m-5  rounded-[20px] hover:scale-110 transition-all'>
+                            <img src={i[1].face} className='w-[150px] h-[200px] object-cover rounded-[10px]' alt="" />
+                            <h3 className='relative bg-white text-center rounded-[5px] mt-2 p-2'>{i[1].title}</h3>
+                        </div>
+                        </Link>
+                    })
+                }
             </div>
-            {select && select !== undefined && <div className='fixed top-0 left-0 bg-[#000000ab] w-full h-full flex justify-center items-center z-20' onClick={() => setSelect(null)}>
-                <div className='absolute w-[350px] h-[450px] top-0 bottom-0 left-0 right-0 m-auto bg-white flex flex-col justify-center items-center rounded-md' onClick={(e) => e.stopPropagation()}>
-                    <img src={`/${select}.png`} className='w-[300px] p-5' alt="" />
-                    <p>Siginificado: {select}</p>
-                    {/* <p>Ejemplo: {vocabulary[select].example}</p> */}
-                </div>
-            </div>}
-            <SpeechToText error={error}
-                interimResult={interimResult}
-                isRecording={isRecording}
-                results={results}
-                startSpeechToText={startSpeechToText}
-                stopSpeechToText={stopSpeechToText} value={value} setValue={setValue} lecture={lecture} setLecture={setLecture} refLecture={refLecture} stories2={stories.content[0]} refLecture2={refLecture2} refLecture3={refLecture3} />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         </div>
     )
 }

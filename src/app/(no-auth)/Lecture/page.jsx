@@ -1,7 +1,7 @@
 'use client'
 import { useState, useRef, useEffect } from 'react'
-import SpeechToText from '@/components/SpeechToText'
-import useSpeechToText from 'react-hook-speech-to-text';
+// import SpeechToText from '@/components/SpeechToText'
+// import useSpeechToText from 'react-hook-speech-to-text';
 import { fabulas } from '@/db/fabulas'
 import Speech from 'speak-tts'
 import React from 'react'

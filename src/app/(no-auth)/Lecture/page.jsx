@@ -92,9 +92,9 @@ function Home() {
     }
 
     useEffect(() => {
-        // if (window && typeof window !== "undefined") {
-        //     setQuery(window.location.href.split('=')[1].replaceAll('%20', ' '))
-        // }
+        if (window && typeof window !== "undefined") {
+            setQuery(window.location.href.split('=')[1].replaceAll('%20', ' '))
+        }
         if (stories === undefined && query !== undefined) {
             setStories(fabulas[query])
         }

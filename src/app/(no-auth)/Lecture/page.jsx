@@ -107,7 +107,7 @@ function Home() {
                 width={width}
                 height={height}
             />} */}
-            {/* {stories !== undefined && <div>
+            {stories !== undefined && <div>
                 <div className='bg-white p-10 rounded-md'>
                     <p className='text-center'>{stories.title.split(' ').map((i, index) => <>
                         <span
@@ -185,7 +185,7 @@ function Home() {
                         <p>Siginificado: {select}</p>
                     </div>
                 </div>}
-                <SpeechToText error={error}
+                {/* <SpeechToText error={error}
                     interimResult={interimResult}
                     isRecording={isRecording}
                     results={results}
@@ -205,8 +205,8 @@ function Home() {
                     //             ? stories.content.replaceAll('\n', '').replace(/^\s+|\s+$|\s+(?=\s)/g, "").trim()
                     //             : stories.teaching.replaceAll('\n', '').replace(/^\s+|\s+$|\s+(?=\s)/g, "").trim())}
                     refLecture2={refLecture2}
-                    refLecture3={refLecture3} />
-            </div>} */}
+                    refLecture3={refLecture3} /> */}
+            </div>}
 
         </div>
     )

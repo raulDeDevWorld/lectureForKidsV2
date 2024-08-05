@@ -71,13 +71,6 @@ function Home() {
     const refLecture2 = useRef([])
 
 
-
-    const [title, setTitle] = useState(false)
-    const [content, setContent] = useState(false);
-    const [teaching, setTeaching] = useState(false);
-
-
-
     const refLecture3 = useRef('title')
 
     console.log(lecture)
@@ -105,13 +98,7 @@ function Home() {
             setStories(fabulas[query])
         }
     }, [query])
-    console.log(refLecture)
-    console.log(refLecture2)
 
-
-    function compare() {
-        console.log(stories !== undefined && stories.title.replaceAll('\n', '').replace(/^\s+|\s+$|\s+(?=\s)/g, "").trim().split(' '))
-    }
 
     return (
         <div className='relative bg-gradient-to-tr from-indigo-500 from-10% via-sky-500 via-30% to-emerald-500 to-90% h-screen w-screen p-10'>

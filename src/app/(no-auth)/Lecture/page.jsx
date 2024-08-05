@@ -9,7 +9,7 @@ import React from 'react'
 import Confetti from 'react-confetti'
 function Home() {
 
-    const { width, height } = useWindowSize()
+    // const { width, height } = useWindowSize()
 
     // ---------------Speach TTS
 

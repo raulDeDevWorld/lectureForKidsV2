@@ -46,22 +46,22 @@ function Home() {
 
     // ---------------Speach to text
 
-    const {
-        error,
-        interimResult,
-        isRecording,
-        results,
-        startSpeechToText,
-        stopSpeechToText,
-    } = useSpeechToText({
-        continuous: true,
-        useLegacyResults: false,
-        timeout: 1,
-        speechRecognitionProperties: {
-            lang: 'es-MX',
-            interimResults: true // Allows for displaying real-time speech results
-        }
-    });
+    // const {
+    //     error,
+    //     interimResult,
+    //     isRecording,
+    //     results,
+    //     startSpeechToText,
+    //     stopSpeechToText,
+    // } = useSpeechToText({
+    //     continuous: true,
+    //     useLegacyResults: false,
+    //     timeout: 1,
+    //     speechRecognitionProperties: {
+    //         lang: 'es-MX',
+    //         interimResults: true // Allows for displaying real-time speech results
+    //     }
+    // });
     const [stories, setStories] = useState(undefined)
     const [select, setSelect] = useState(null);
     const [query, setQuery] = useState(undefined);

@@ -11,6 +11,8 @@ function Home() {
 
     const { width, height } = useWindowSize()
 
+    // ---------------Speach TTS
+
     const speech = new Speech()
     if (speech.hasBrowserSupport()) {
         speech.init({
@@ -29,8 +31,6 @@ function Home() {
         })
     }
 
-
-
     function play(text) {
         speech.paused()
             ? speech.resume()
@@ -44,6 +44,7 @@ function Home() {
             })
     }
 
+    // ---------------Speach to text
 
     const {
         error,
@@ -106,8 +107,7 @@ function Home() {
                 width={width}
                 height={height}
             />}
-            {stories !== undefined && <div>
-
+            {/* {stories !== undefined && <div>
                 <div className='bg-white p-10 rounded-md'>
                     <p className='text-center'>{stories.title.split(' ').map((i, index) => <>
                         <span
@@ -206,9 +206,7 @@ function Home() {
                     //             : stories.teaching.replaceAll('\n', '').replace(/^\s+|\s+$|\s+(?=\s)/g, "").trim())}
                     refLecture2={refLecture2}
                     refLecture3={refLecture3} />
-
-
-            </div>}
+            </div>} */}
 
         </div>
     )

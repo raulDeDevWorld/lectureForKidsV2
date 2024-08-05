@@ -1,7 +1,7 @@
 'use client'
 import { useState, useRef, useEffect } from 'react'
-// import SpeechToText from '@/components/SpeechToText'
-// import useSpeechToText from 'react-hook-speech-to-text';
+import SpeechToText from '@/components/SpeechToText'
+import useSpeechToText from 'react-hook-speech-to-text';
 import { fabulas } from '@/db/fabulas'
 import Speech from 'speak-tts'
 import React from 'react'
@@ -60,22 +60,22 @@ function Home() {
 
     // ---------------Speach to text
 
-    // const {
-    //     error,
-    //     interimResult,
-    //     isRecording,
-    //     results,
-    //     startSpeechToText,
-    //     stopSpeechToText,
-    // } = useSpeechToText({
-    //     continuous: true,
-    //     useLegacyResults: false,
-    //     timeout: 1,
-    //     speechRecognitionProperties: {
-    //         lang: 'es-MX',
-    //         interimResults: true // Allows for displaying real-time speech results
-    //     }
-    // });
+    const {
+        error,
+        interimResult,
+        isRecording,
+        results,
+        startSpeechToText,
+        stopSpeechToText,
+    } = useSpeechToText({
+        continuous: true,
+        useLegacyResults: false,
+        timeout: 1,
+        speechRecognitionProperties: {
+            lang: 'es-MX',
+            interimResults: true // Allows for displaying real-time speech results
+        }
+    });
 
 
     console.log(lecture)
@@ -189,7 +189,7 @@ function Home() {
                         <p>Siginificado: {select}</p>
                     </div>
                 </div>}
-                {/* <SpeechToText error={error}
+                <SpeechToText error={error}
                     interimResult={interimResult}
                     isRecording={isRecording}
                     results={results}
@@ -209,7 +209,7 @@ function Home() {
                     //             ? stories.content.replaceAll('\n', '').replace(/^\s+|\s+$|\s+(?=\s)/g, "").trim()
                     //             : stories.teaching.replaceAll('\n', '').replace(/^\s+|\s+$|\s+(?=\s)/g, "").trim())}
                     refLecture2={refLecture2}
-                    refLecture3={refLecture3} /> */}
+                    refLecture3={refLecture3} />
             </div>}
 
         </div>

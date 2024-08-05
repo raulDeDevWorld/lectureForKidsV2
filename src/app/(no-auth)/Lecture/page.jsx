@@ -3,9 +3,9 @@ import { useState, useRef, useEffect } from 'react'
 // import SpeechToText from '@/components/SpeechToText'
 // import useSpeechToText from 'react-hook-speech-to-text';
 import { fabulas } from '@/db/fabulas'
-import Speech from 'speak-tts'
+// import Speech from 'speak-tts'
 import React from 'react'
-import useWindowSize from 'react-use/lib/useWindowSize'
+// import useWindowSize from 'react-use/lib/useWindowSize'
 import Confetti from 'react-confetti'
 function Home() {
 
@@ -13,23 +13,23 @@ function Home() {
 
     // ---------------Speach TTS
 
-    const speech = new Speech()
-    if (speech.hasBrowserSupport()) {
-        speech.init({
-            'volume': 1,
-            'lang': 'es-US',
-            'rate': 2,
-            'pitch': .5,
-            'voice': 'Microsoft Pablo - Spanish (Spain)',
-            'splitSentences': true,
-            'listeners': {
-                'onvoiceschanged': (voices) => {
-                    // console.log("Event voiceschanged", voices)
-                    // setVoicesTTS(voices)
-                }
-            }
-        })
-    }
+    // const speech = new Speech()
+    // if (speech.hasBrowserSupport()) {
+    //     speech.init({
+    //         'volume': 1,
+    //         'lang': 'es-US',
+    //         'rate': 2,
+    //         'pitch': .5,
+    //         'voice': 'Microsoft Pablo - Spanish (Spain)',
+    //         'splitSentences': true,
+    //         'listeners': {
+    //             'onvoiceschanged': (voices) => {
+    //                 // console.log("Event voiceschanged", voices)
+    //                 // setVoicesTTS(voices)
+    //             }
+    //         }
+    //     })
+    // }
 
     function play(text) {
         speech.paused()
@@ -103,10 +103,10 @@ function Home() {
 
     return (
         <div className='relative bg-gradient-to-tr from-indigo-500 from-10% via-sky-500 via-30% to-emerald-500 to-90% h-screen w-screen p-10'>
-            {lecture === 'COMPLETE' && <Confetti
+            {/* {lecture === 'COMPLETE' && <Confetti
                 width={width}
                 height={height}
-            />}
+            />} */}
             {/* {stories !== undefined && <div>
                 <div className='bg-white p-10 rounded-md'>
                     <p className='text-center'>{stories.title.split(' ').map((i, index) => <>

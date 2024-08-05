@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from 'react'
 // import SpeechToText from '@/components/SpeechToText'
 // import useSpeechToText from 'react-hook-speech-to-text';
 import { fabulas } from '@/db/fabulas'
-// import Speech from 'speak-tts'
+import Speech from 'speak-tts'
 import React from 'react'
 // import useWindowSize from 'react-use/lib/useWindowSize'
 import Confetti from 'react-confetti'
@@ -13,23 +13,23 @@ function Home() {
 
     // ---------------Speach TTS
 
-    // const speech = new Speech()
-    // if (speech.hasBrowserSupport()) {
-    //     speech.init({
-    //         'volume': 1,
-    //         'lang': 'es-US',
-    //         'rate': 2,
-    //         'pitch': .5,
-    //         'voice': 'Microsoft Pablo - Spanish (Spain)',
-    //         'splitSentences': true,
-    //         'listeners': {
-    //             'onvoiceschanged': (voices) => {
-    //                 // console.log("Event voiceschanged", voices)
-    //                 // setVoicesTTS(voices)
-    //             }
-    //         }
-    //     })
-    // }
+    const speech = new Speech()
+    if (speech.hasBrowserSupport()) {
+        speech.init({
+            'volume': 1,
+            'lang': 'es-US',
+            'rate': 2,
+            'pitch': .5,
+            'voice': 'Microsoft Pablo - Spanish (Spain)',
+            'splitSentences': true,
+            'listeners': {
+                'onvoiceschanged': (voices) => {
+                    // console.log("Event voiceschanged", voices)
+                    // setVoicesTTS(voices)
+                }
+            }
+        })
+    }
 
     function play(text) {
         speech.paused()

@@ -5,7 +5,7 @@ import useSpeechToText from 'react-hook-speech-to-text';
 import { fabulas } from '@/db/fabulas'
 import Speech from 'speak-tts'
 import React from 'react'
-// import useWindowSize from 'react-use/lib/useWindowSize'
+import useWindowSize from 'react-use/lib/useWindowSize'
 import Confetti from 'react-confetti'
 function Home() {
     const [stories, setStories] = useState(undefined)
@@ -19,7 +19,7 @@ function Home() {
 
 
     const refLecture3 = useRef('title')
-    // const { width, height } = useWindowSize()
+    const { width, height } = useWindowSize()
 
     // ---------------Speach TTS
 
@@ -107,10 +107,10 @@ function Home() {
 
     return (
         <div className='relative bg-gradient-to-tr from-indigo-500 from-10% via-sky-500 via-30% to-emerald-500 to-90% h-screen w-screen p-10'>
-            {/* {lecture === 'COMPLETE' && <Confetti
+            {lecture === 'COMPLETE' && <Confetti
                 width={width}
                 height={height}
-            />} */}
+            />}
             {stories !== undefined && <div>
                 <div className='bg-white p-10 rounded-md'>
                     <p className='text-center'>{stories.title.split(' ').map((i, index) => <>

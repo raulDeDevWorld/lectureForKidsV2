@@ -8,30 +8,44 @@ import React from 'react'
 // import useWindowSize from 'react-use/lib/useWindowSize'
 import Confetti from 'react-confetti'
 function Home() {
+    const [stories, setStories] = useState(undefined)
+    const [select, setSelect] = useState(null);
+    const [query, setQuery] = useState(undefined);
 
+    const [value, setValue] = useState('');
+    const [lecture, setLecture] = useState('title');
+    const refLecture = useRef([])
+    const refLecture2 = useRef([])
+
+
+    const refLecture3 = useRef('title')
     // const { width, height } = useWindowSize()
 
     // ---------------Speach TTS
 
-    const speech = new Speech()
-    if (speech.hasBrowserSupport()) {
-        speech.init({
-            'volume': 1,
-            'lang': 'es-US',
-            'rate': 2,
-            'pitch': .5,
-            'voice': 'Microsoft Pablo - Spanish (Spain)',
-            'splitSentences': true,
-            'listeners': {
-                'onvoiceschanged': (voices) => {
-                    // console.log("Event voiceschanged", voices)
-                    // setVoicesTTS(voices)
-                }
-            }
-        })
-    }
+
 
     function play(text) {
+
+        const speech = new Speech()
+        if (speech.hasBrowserSupport()) {
+            speech.init({
+                'volume': 1,
+                'lang': 'es-US',
+                'rate': 2,
+                'pitch': .5,
+                'voice': 'Microsoft Pablo - Spanish (Spain)',
+                'splitSentences': true,
+                'listeners': {
+                    'onvoiceschanged': (voices) => {
+                        // console.log("Event voiceschanged", voices)
+                        // setVoicesTTS(voices)
+                    }
+                }
+            })
+        }
+
+
         speech.paused()
             ? speech.resume()
             : speech.speak({
@@ -62,17 +76,7 @@ function Home() {
     //         interimResults: true // Allows for displaying real-time speech results
     //     }
     // });
-    const [stories, setStories] = useState(undefined)
-    const [select, setSelect] = useState(null);
-    const [query, setQuery] = useState(undefined);
 
-    const [value, setValue] = useState('');
-    const [lecture, setLecture] = useState('title');
-    const refLecture = useRef([])
-    const refLecture2 = useRef([])
-
-
-    const refLecture3 = useRef('title')
 
     console.log(lecture)
     async function handlerSelect(i) {

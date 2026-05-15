@@ -1,9 +1,11 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import useSpeechToText from 'react-hook-speech-to-text'
-import { ArrowLeftIcon, HeartIcon, SpeakerIcon } from '@/components/icons/Icons'
+import { ArrowLeftIcon, HeartIcon, MicrophoneIcon, SpeakerIcon } from '@/components/icons/Icons'
+import { useDictionaryLookup } from '@/features/dictionary/hooks/useDictionaryLookup'
+import { DictionaryModal } from '@/features/reading/components/DictionaryModal'
 import { SpeechToText } from '@/features/reading/components/SpeechToText'
 import { StoryText } from '@/features/reading/components/StoryText'
 import { useReadingSession } from '@/features/reading/hooks/useReadingSession'
@@ -19,8 +21,11 @@ const textSizes = [
 
 export function StoryReader({ isFavorite, onToggleFavorite, story }) {
     const [speechValue, setSpeechValue] = useState('')
+    const [wantsRecording, setWantsRecording] = useState(false)
     const [textSizeIndex, setTextSizeIndex] = useState(1)
+    const startingRef = useRef(false)
     const playWord = useSpeechPlayback()
+    const { closeDefinition, definition, lookupDefinition } = useDictionaryLookup()
     const storyForPractice = useMemo(() => ({
         ...story,
         content: story.content.join('\n\n'),
@@ -33,7 +38,7 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
         renderableTokens,
         section,
         session,
-    } = useReadingSession(storyForPractice)
+    } = useReadingSession(storyForPractice, { initialSection: 'content' })
 
     const {
         error,
@@ -66,34 +71,93 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
         window.speechSynthesis.speak(utterance)
     }
 
+    const canRecord = !error
+    const isListening = wantsRecording || isRecording
+
+    const startListening = useCallback(() => {
+        if (!canRecord || startingRef.current) return
+
+        startingRef.current = true
+        let startResult
+
+        try {
+            startResult = startSpeechToText()
+        } catch {
+            setWantsRecording(false)
+            startingRef.current = false
+            return
+        }
+
+        Promise.resolve(startResult)
+            .catch(() => {
+                setWantsRecording(false)
+            })
+            .finally(() => {
+                startingRef.current = false
+            })
+    }, [canRecord, startSpeechToText])
+
+    const requestStartListening = useCallback(() => {
+        setWantsRecording(true)
+        startListening()
+    }, [startListening])
+
+    const requestStopListening = useCallback(() => {
+        setWantsRecording(false)
+        stopSpeechToText()
+    }, [stopSpeechToText])
+
+    useEffect(() => {
+        if (!wantsRecording || isRecording || !canRecord) return
+
+        const timeout = window.setTimeout(() => {
+            startListening()
+        }, 600)
+
+        return () => window.clearTimeout(timeout)
+    }, [canRecord, isRecording, startListening, wantsRecording])
+
+    const toggleRecording = canRecord
+        ? isListening
+            ? requestStopListening
+            : requestStartListening
+        : undefined
+
     return (
         <div className='relative min-h-screen overflow-hidden bg-[#FFF9EF] pb-40 text-[#1F2A44]'>
             <div className='pointer-events-none absolute -left-24 top-16 h-56 w-56 rounded-full bg-[#A7D8F5]/35 blur-3xl' />
             <div className='pointer-events-none absolute -right-20 top-72 h-56 w-56 rounded-full bg-[#FFC3A1]/35 blur-3xl' />
+
             <div className='relative mx-auto flex min-h-screen w-full max-w-3xl flex-col'>
                 <header className='sticky top-0 z-30 px-3 py-3'>
                     <div className='flex items-center justify-between gap-3 rounded-[2rem] bg-white/90 p-2 shadow-[0_14px_42px_rgba(31,42,68,0.12)] backdrop-blur-xl'>
-                    <Link href='/cuentos' aria-label='Volver a cuentos' className='inline-flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-[0_8px_22px_rgba(31,42,68,0.10)]'>
-                        <ArrowLeftIcon className='h-6 w-6' />
-                    </Link>
-                    <div className='flex gap-2'>
-                        <button
-                            type='button'
-                            aria-label='Cambiar tamaño de texto'
-                            onClick={toggleTextSize}
-                            className='inline-flex h-12 min-w-12 items-center justify-center rounded-full bg-white px-4 text-base font-black shadow-[0_8px_22px_rgba(31,42,68,0.10)]'
-                        >
-                            Aa
-                        </button>
-                        <button
-                            type='button'
-                            aria-label='Escuchar sección actual'
-                            onClick={readCurrentSection}
-                            className='inline-flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-[0_8px_22px_rgba(31,42,68,0.10)]'
-                        >
-                            <SpeakerIcon className='h-6 w-6' />
-                        </button>
-                    </div>
+                        <Link href='/cuentos' aria-label='Volver a cuentos' className='inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white shadow-[0_8px_22px_rgba(31,42,68,0.10)]'>
+                            <ArrowLeftIcon className='h-6 w-6' />
+                        </Link>
+
+                        <div className='min-w-0 flex-1 px-1'>
+                            <p className='truncate text-[11px] font-black uppercase tracking-[0.14em] text-[#7A8194]'>Modo practica</p>
+                            <p className='truncate text-sm font-black text-[#1F2A44]'>Lee en voz alta y avanza palabra por palabra</p>
+                        </div>
+
+                        <div className='flex shrink-0 gap-2'>
+                            <button
+                                type='button'
+                                aria-label='Cambiar tamaño de texto'
+                                onClick={toggleTextSize}
+                                className='inline-flex h-12 min-w-12 items-center justify-center rounded-full bg-white px-4 text-base font-black shadow-[0_8px_22px_rgba(31,42,68,0.10)]'
+                            >
+                                Aa
+                            </button>
+                            <button
+                                type='button'
+                                aria-label='Escuchar sección actual'
+                                onClick={readCurrentSection}
+                                className='inline-flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-[0_8px_22px_rgba(31,42,68,0.10)]'
+                            >
+                                <SpeakerIcon className='h-6 w-6' />
+                            </button>
+                        </div>
                     </div>
                 </header>
 
@@ -113,7 +177,7 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
                             <StoryText
                                 activeSection={section}
                                 className='mt-1 text-3xl font-black leading-tight text-[#1F2A44] sm:text-4xl'
-                                onLookupWord={() => {}}
+                                onLookupWord={lookupDefinition}
                                 onPlayWord={playWord}
                                 renderableTokens={renderableTokens}
                                 section='title'
@@ -124,26 +188,48 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
                     </div>
 
                     <div className='mt-5 rounded-3xl bg-[#F3F4F6] p-4'>
-                        <div className='flex items-center justify-between text-xs font-black uppercase tracking-[0.14em] text-[#7A8194]'>
-                            <span>Progreso {progressPercent}%</span>
-                            <span>{session.currentIndex}/{session.wordTokens.length}</span>
+                        <div className='flex items-start justify-between gap-3'>
+                            <div className='min-w-0 flex-1'>
+                                <div className='flex items-center justify-between text-xs font-black uppercase tracking-[0.14em] text-[#7A8194]'>
+                                    <span>Progreso {progressPercent}%</span>
+                                    <span>{session.currentIndex}/{session.wordTokens.length}</span>
+                                </div>
+                                <div className='mt-2 h-3 overflow-hidden rounded-full bg-white'>
+                                    <div
+                                        className='h-full rounded-full bg-[linear-gradient(90deg,#A7D8F5,#BFE8D4,#FFD166)] transition-all duration-300'
+                                        style={{ width: `${progressPercent}%` }}
+                                    />
+                                </div>
+                                <p className='mt-3 text-sm font-black text-[#7A8194]'>
+                                    {isListening
+                                        ? currentWord
+                                            ? `Escuchando: ${currentWord}`
+                                            : 'Escuchando tu lectura'
+                                        : currentWord
+                                            ? `Lee en voz alta: ${currentWord}`
+                                            : canRecord
+                                                ? 'Presiona el microfono y comienza.'
+                                                : 'El reconocimiento de voz no esta disponible.'}
+                                </p>
+                            </div>
+
+                            <button
+                                type='button'
+                                aria-label={canRecord ? (isListening ? 'Detener microfono' : 'Activar microfono') : 'Microfono no disponible'}
+                                onClick={toggleRecording}
+                                disabled={!canRecord}
+                                className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-white shadow-[0_7px_0_rgba(31,42,68,0.16)] transition active:translate-y-0.5 active:shadow-none ${isListening ? 'bg-[#ff6b6b]' : 'bg-[#1F2A44]'} ${canRecord ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}`}
+                            >
+                                <MicrophoneIcon className='h-7 w-7' />
+                            </button>
                         </div>
-                        <div className='mt-2 h-3 overflow-hidden rounded-full bg-white'>
-                            <div
-                                className='h-full rounded-full bg-[linear-gradient(90deg,#A7D8F5,#BFE8D4,#FFD166)] transition-all duration-300'
-                                style={{ width: `${progressPercent}%` }}
-                            />
-                        </div>
-                        <p className='mt-3 text-sm font-black text-[#7A8194]'>
-                            {currentWord ? `Lee en voz alta: ${currentWord}` : 'Presiona el microfono y comienza.'}
-                        </p>
                     </div>
 
                     <section className='mt-6 rounded-[2rem] bg-[#F8FBFF] p-4 shadow-inner'>
                         <StoryText
                             activeSection={section}
                             className={`font-bold text-[#374151] ${textSizes[textSizeIndex]}`}
-                            onLookupWord={() => {}}
+                            onLookupWord={lookupDefinition}
                             onPlayWord={playWord}
                             renderableTokens={renderableTokens}
                             section='content'
@@ -159,7 +245,7 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
                         <StoryText
                             activeSection={section}
                             className='mt-2 text-lg font-black leading-8 text-[#1F2A44]'
-                            onLookupWord={() => {}}
+                            onLookupWord={lookupDefinition}
                             onPlayWord={playWord}
                             renderableTokens={renderableTokens}
                             section='teaching'
@@ -172,10 +258,10 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
             <SpeechToText
                 error={error}
                 interimResult={interimResult}
-                isRecording={isRecording}
+                isRecording={isListening}
                 results={results}
-                startSpeechToText={startSpeechToText}
-                stopSpeechToText={stopSpeechToText}
+                startSpeechToText={requestStartListening}
+                stopSpeechToText={requestStopListening}
                 setValue={setSpeechValue}
                 value={speechValue}
                 resetKey={section}
@@ -183,6 +269,8 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
                 missedStreak={session.missedStreak}
                 onSpeech={handleSpeech}
             />
+
+            <DictionaryModal definition={definition} onClose={closeDefinition} />
         </div>
     )
 }

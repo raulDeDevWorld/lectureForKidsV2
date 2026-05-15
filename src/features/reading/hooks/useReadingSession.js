@@ -9,8 +9,9 @@ import {
 } from '@/lib/readingMatcher'
 import { NEXT_READING_SECTION } from '../constants/sections'
 
-export function useReadingSession(story) {
-    const [section, setSection] = useState('title')
+export function useReadingSession(story, options = {}) {
+    const initialSection = options.initialSection || 'title'
+    const [section, setSection] = useState(initialSection)
     const [readingState, setReadingState] = useState(() => ({
         text: '',
         session: createReadingSession(''),
@@ -18,7 +19,11 @@ export function useReadingSession(story) {
 
     const currentText = useMemo(() => {
         if (!story || section === 'COMPLETE') return ''
-        return story[section].replaceAll('\n', ' ').replace(/\s+/g, ' ').trim()
+        const sectionText = Array.isArray(story[section])
+            ? story[section].join(' ')
+            : story[section]
+
+        return String(sectionText || '').replaceAll('\n', ' ').replace(/\s+/g, ' ').trim()
     }, [section, story])
 
     const freshSession = useMemo(() => createReadingSession(currentText), [currentText])

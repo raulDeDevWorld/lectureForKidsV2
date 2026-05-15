@@ -1,17 +1,11 @@
-import { fabulas } from '@/db/fabulas'
+import { getStories, getStoryById } from '@/data/fabulas'
 
 export function listStories() {
-    return Object.entries(fabulas).map(([id, story]) => ({
-        id,
-        ...story,
-    }))
+    return getStories()
 }
 
-export function getStoryById(id) {
-    if (!id) return null
-    return fabulas[id] || null
-}
+export { getStoryById }
 
 export function getStoryCount() {
-    return Object.keys(fabulas).length
+    return getStories().length
 }

@@ -87,6 +87,20 @@ test('returns renderable tokens with current word status', () => {
     assert.equal(wordTokens[2].status, 'pending')
 })
 
+test('keeps matched words visible as speech advances', () => {
+    let session = createReadingSession('uno dos tres cuatro')
+
+    session = updateReadingProgress(session, 'uno dos')
+    let wordTokens = getRenderableTokens(session).filter((token) => token.type === 'word')
+
+    assert.deepEqual(wordTokens.map((token) => token.status), ['matched', 'matched', 'current', 'pending'])
+
+    session = updateReadingProgress(session, 'tres')
+    wordTokens = getRenderableTokens(session).filter((token) => token.type === 'word')
+
+    assert.deepEqual(wordTokens.map((token) => token.status), ['matched', 'matched', 'matched', 'current'])
+})
+
 test('emits missed events without advancing on unrelated speech', () => {
     const initial = createReadingSession('uno dos tres')
     const { session, events } = applySpeechEvent(initial, createSpeechEvent({ text: 'zapato azul' }))

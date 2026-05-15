@@ -56,21 +56,17 @@ export function SpeechToText({
         }
     }, [onSpeech, results, setValue])
 
-    if (error) {
-        return (
-            <div className='fixed bottom-4 left-3 right-3 z-20 rounded-[24px] bg-white p-4 text-center text-sm font-black text-[#172554] shadow-[0_16px_45px_rgba(23,37,84,0.18)]'>
-                El reconocimiento de voz no esta disponible en este navegador.
-            </div>
-        )
-    }
-
     const helperText = isRecording
         ? missedStreak >= 3
             ? 'Intenta repetir la palabra resaltada'
             : currentWord
                 ? `Ahora lee: ${currentWord}`
                 : 'Sigue leyendo'
-        : 'Presiona el microfono y empieza a leer'
+        : error
+            ? 'El reconocimiento de voz no esta disponible en este navegador.'
+            : 'Presiona el microfono y empieza a leer'
+
+    const canRecord = !error
 
     return (
         <div className='pointer-events-none fixed inset-x-0 bottom-0 z-20 flex justify-center px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3'>
@@ -79,9 +75,10 @@ export function SpeechToText({
                     <div className={isRecording ? style.spinner : ''}>
                         <button
                             type='button'
-                            className={`relative z-50 flex h-14 w-14 shrink-0 cursor-pointer items-center justify-center rounded-2xl p-2 shadow-[0_6px_0_rgba(23,37,84,0.18)] transition-all sm:h-16 sm:w-16 ${isRecording ? 'bg-[#ff6b6b]' : 'bg-[#172554]'} ${style.animation}`}
-                            onClick={isRecording ? stopSpeechToText : startSpeechToText}
-                            aria-label={isRecording ? 'Detener lectura' : 'Iniciar lectura'}
+                            className={`relative z-50 flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl p-2 shadow-[0_6px_0_rgba(23,37,84,0.18)] transition-all sm:h-16 sm:w-16 ${isRecording ? 'bg-[#ff6b6b]' : 'bg-[#172554]'} ${canRecord ? 'cursor-pointer' : 'cursor-not-allowed opacity-55'} ${style.animation}`}
+                            onClick={canRecord ? (isRecording ? stopSpeechToText : startSpeechToText) : undefined}
+                            aria-label={canRecord ? (isRecording ? 'Detener lectura' : 'Iniciar lectura') : 'Reconocimiento de voz no disponible'}
+                            disabled={!canRecord}
                         >
                             <svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24'>
                                 <path

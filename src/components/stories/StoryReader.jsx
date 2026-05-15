@@ -1,13 +1,13 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import Link from 'next/link'
+import useSpeechToText from 'react-hook-speech-to-text'
 import { ArrowLeftIcon, HeartIcon, SpeakerIcon } from '@/components/icons/Icons'
 import { useDictionaryLookup } from '@/features/dictionary/hooks/useDictionaryLookup'
 import { DictionaryModal } from '@/features/reading/components/DictionaryModal'
 import { SpeechToText } from '@/features/reading/components/SpeechToText'
 import { StoryText } from '@/features/reading/components/StoryText'
-import { useBrowserSpeechRecognition } from '@/features/reading/hooks/useBrowserSpeechRecognition'
 import { useReadingSession } from '@/features/reading/hooks/useReadingSession'
 import { useSpeechPlayback } from '@/features/reading/hooks/useSpeechPlayback'
 import { FavoriteButton } from './FavoriteButton'
@@ -21,9 +21,7 @@ const textSizes = [
 
 export function StoryReader({ isFavorite, onToggleFavorite, story }) {
     const [speechValue, setSpeechValue] = useState('')
-    const [wantsRecording, setWantsRecording] = useState(false)
     const [textSizeIndex, setTextSizeIndex] = useState(1)
-    const startingRef = useRef(false)
     const playWord = useSpeechPlayback()
     const { closeDefinition, definition, lookupDefinition } = useDictionaryLookup()
     const storyForPractice = useMemo(() => ({
@@ -47,7 +45,15 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
         results,
         startSpeechToText,
         stopSpeechToText,
-    } = useBrowserSpeechRecognition({ lang: 'es-MX' })
+    } = useSpeechToText({
+        continuous: true,
+        useLegacyResults: false,
+        timeout: 2500,
+        speechRecognitionProperties: {
+            lang: 'es-MX',
+            interimResults: true,
+        },
+    })
 
     function toggleTextSize() {
         setTextSizeIndex((current) => (current + 1) % textSizes.length)
@@ -64,56 +70,6 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
     }
 
     const canRecord = !error
-    const isListening = wantsRecording || isRecording
-
-    const startListening = useCallback(() => {
-        if (!canRecord || startingRef.current) return
-
-        startingRef.current = true
-        let startResult
-
-        try {
-            startResult = startSpeechToText()
-        } catch {
-            setWantsRecording(false)
-            startingRef.current = false
-            return
-        }
-
-        Promise.resolve(startResult)
-            .catch(() => {
-                setWantsRecording(false)
-            })
-            .finally(() => {
-                startingRef.current = false
-            })
-    }, [canRecord, startSpeechToText])
-
-    const requestStartListening = useCallback(() => {
-        setWantsRecording(true)
-        startListening()
-    }, [startListening])
-
-    const requestStopListening = useCallback(() => {
-        setWantsRecording(false)
-        stopSpeechToText()
-    }, [stopSpeechToText])
-
-    useEffect(() => {
-        if (!wantsRecording || isRecording || !canRecord) return
-
-        const timeout = window.setTimeout(() => {
-            startListening()
-        }, 600)
-
-        return () => window.clearTimeout(timeout)
-    }, [canRecord, isRecording, startListening, wantsRecording])
-
-    const toggleRecording = canRecord
-        ? isListening
-            ? requestStopListening
-            : requestStartListening
-        : undefined
 
     return (
         <div className='relative min-h-screen overflow-hidden bg-[#FFF9EF] pb-40 text-[#1F2A44]'>
@@ -192,7 +148,7 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
                         </div>
 
                         <p className='mt-3 rounded-2xl bg-white/70 px-4 py-3 text-sm font-black text-[#7A8194]'>
-                            {isListening
+                            {isRecording
                                 ? currentWord
                                     ? `Escuchando: ${currentWord}`
                                     : 'Escuchando tu lectura'
@@ -237,10 +193,10 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
             <SpeechToText
                 error={error}
                 interimResult={interimResult}
-                isRecording={isListening}
+                isRecording={isRecording}
                 results={results}
-                startSpeechToText={requestStartListening}
-                stopSpeechToText={requestStopListening}
+                startSpeechToText={startSpeechToText}
+                stopSpeechToText={stopSpeechToText}
                 setValue={setSpeechValue}
                 value={speechValue}
                 resetKey={section}

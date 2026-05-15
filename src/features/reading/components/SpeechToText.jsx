@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { SPEECH_EVENT_TYPE } from '@/lib/readingMatcher'
 import style from './SpeechToText.module.css'
 
@@ -22,9 +22,35 @@ export function SpeechToText({
     const lastInterimRef = useRef('')
     const resultsLengthRef = useRef(0)
 
+    const logSpeechState = useCallback((action, extra = {}) => {
+        if (typeof window === 'undefined') return
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+
+        console.info('[SpeechToText]', {
+            action,
+            canUseSpeechRecognition: Boolean(SpeechRecognition),
+            error,
+            hasGetUserMedia: Boolean(navigator.mediaDevices?.getUserMedia),
+            hasStartSpeechToText: typeof startSpeechToText === 'function',
+            hasStopSpeechToText: typeof stopSpeechToText === 'function',
+            interimResult,
+            isRecording,
+            location: window.location.href,
+            protocol: window.location.protocol,
+            resultsLength: results.length,
+            userAgent: navigator.userAgent,
+            ...extra,
+        })
+    }, [error, interimResult, isRecording, results.length, startSpeechToText, stopSpeechToText])
+
     useEffect(() => {
         resultsLengthRef.current = results.length
     }, [results.length])
+
+    useEffect(() => {
+        logSpeechState('state-change')
+    }, [logSpeechState])
 
     useEffect(() => {
         processedFinalCountRef.current = resultsLengthRef.current
@@ -69,8 +95,28 @@ export function SpeechToText({
     const canRecord = !error
     const buttonBackground = isRecording ? '#ff6b6b' : '#172554'
 
+    function handleMicrophoneClick() {
+        logSpeechState('button-click', { canRecord })
+
+        if (!canRecord) {
+            console.warn('[SpeechToText] Microphone start blocked by hook error:', error)
+            return
+        }
+
+        const action = isRecording ? stopSpeechToText : startSpeechToText
+
+        try {
+            const result = action()
+            Promise.resolve(result)
+                .then(() => logSpeechState(isRecording ? 'stop-called' : 'start-called'))
+                .catch((caughtError) => logSpeechState('action-rejected', { caughtError }))
+        } catch (caughtError) {
+            logSpeechState('action-threw', { caughtError })
+        }
+    }
+
     return (
-        <div className='pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3'>
+        <div className=' fixed inset-x-0 bottom-0 z-50 flex justify-center px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3'>
             <div className='pointer-events-auto flex w-full max-w-3xl items-center gap-3 rounded-[30px] bg-white p-3 shadow-[0_12px_0_rgba(23,37,84,0.10),0_22px_60px_rgba(23,37,84,0.22)]'>
                 <div className='min-w-0 flex-1'>
                     <p className='text-[11px] font-black uppercase tracking-[0.16em] text-[#ff6b6b]'>
@@ -79,6 +125,11 @@ export function SpeechToText({
                     <div className='mt-1 line-clamp-2 min-h-[42px] rounded-2xl bg-[#fff7df] px-4 py-2 text-sm font-black leading-6 text-[#172554] sm:text-base'>
                         {value || helperText}
                     </div>
+                    {error && (
+                        <div className='mt-2 rounded-2xl bg-[#FFE4E6] px-4 py-2 text-xs font-black leading-5 text-[#9F1239]'>
+                            Error real del microfono: {error}
+                        </div>
+                    )}
                     <button
                         type='button'
                         className='mt-2 flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-black shadow-[0_5px_0_rgba(23,37,84,0.16)] transition active:translate-y-0.5 active:shadow-none'
@@ -89,7 +140,7 @@ export function SpeechToText({
                             cursor: canRecord ? 'pointer' : 'not-allowed',
                             opacity: canRecord ? 1 : 0.55,
                         }}
-                        onClick={canRecord ? (isRecording ? stopSpeechToText : startSpeechToText) : undefined}
+                        onClick={handleMicrophoneClick}
                         disabled={!canRecord}
                     >
                         <span className={isRecording ? style.spinnerContainer : ''} style={{ height: 28, margin: 0, width: 28 }}>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import useSpeechToText from 'react-hook-speech-to-text'
 import { ArrowLeftIcon, HeartIcon, SpeakerIcon } from '@/components/icons/Icons'
@@ -21,7 +21,9 @@ const textSizes = [
 
 export function StoryReader({ isFavorite, onToggleFavorite, story }) {
     const [speechValue, setSpeechValue] = useState('')
+    const [shouldKeepListening, setShouldKeepListening] = useState(false)
     const [textSizeIndex, setTextSizeIndex] = useState(1)
+    const restartTimeoutRef = useRef(null)
     const playWord = useSpeechPlayback()
     const { closeDefinition, definition, lookupDefinition } = useDictionaryLookup()
     const storyForPractice = useMemo(() => ({
@@ -70,6 +72,36 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
     }
 
     const canRecord = !error
+    const listeningActive = shouldKeepListening || isRecording
+
+    const startListening = useCallback(() => {
+        setShouldKeepListening(true)
+        startSpeechToText()
+    }, [startSpeechToText])
+
+    const stopListening = useCallback(() => {
+        setShouldKeepListening(false)
+        if (restartTimeoutRef.current) {
+            window.clearTimeout(restartTimeoutRef.current)
+            restartTimeoutRef.current = null
+        }
+        stopSpeechToText()
+    }, [stopSpeechToText])
+
+    useEffect(() => {
+        if (!shouldKeepListening || isRecording || !canRecord) return
+
+        restartTimeoutRef.current = window.setTimeout(() => {
+            startSpeechToText()
+        }, 350)
+
+        return () => {
+            if (restartTimeoutRef.current) {
+                window.clearTimeout(restartTimeoutRef.current)
+                restartTimeoutRef.current = null
+            }
+        }
+    }, [canRecord, isRecording, shouldKeepListening, startSpeechToText])
 
     return (
         <div className='relative min-h-screen overflow-hidden bg-[#FFF9EF] pb-40 text-[#1F2A44]'>
@@ -148,7 +180,7 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
                         </div>
 
                         <p className='mt-3 rounded-2xl bg-white/70 px-4 py-3 text-sm font-black text-[#7A8194]'>
-                            {isRecording
+                            {listeningActive
                                 ? currentWord
                                     ? `Escuchando: ${currentWord}`
                                     : 'Escuchando tu lectura'
@@ -193,10 +225,10 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
             <SpeechToText
                 error={error}
                 interimResult={interimResult}
-                isRecording={isRecording}
+                isRecording={listeningActive}
                 results={results}
-                startSpeechToText={startSpeechToText}
-                stopSpeechToText={stopSpeechToText}
+                startSpeechToText={startListening}
+                stopSpeechToText={stopListening}
                 setValue={setSpeechValue}
                 value={speechValue}
                 resetKey={section}

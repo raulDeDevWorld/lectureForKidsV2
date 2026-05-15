@@ -1,31 +1,29 @@
-import fetch from 'node-fetch';
-
 import { RAE } from 'rae-api'
 
-
-
-
-export default function handler(req, res) {
-    // console.log(req.body  )
-
-
-    async function getRAE() {
-        const rae = new RAE();
-        const search = await rae.searchWord(req.body.word);
-        const wordId = search.getRes()[0].getId(); // gets 'hola' word id
-
-        const result = await rae.fetchWord(wordId); // fetches the word as object
-        const definitions = result.getDefinitions(); // gets all 'hola' definitions as Defintion[]
-        const data = definitions[0].getDefinition(); // gets the first 'hola' definition as string
-        res.json({data})
-
+export default async function handler(req, res) {
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Method not allowed' })
     }
 
-    getRAE()
+    const word = String(req.body?.word || '').trim()
+    if (!word) {
+        return res.status(400).json({ error: 'Word is required' })
+    }
+
+    try {
+        const rae = new RAE()
+        const search = await rae.searchWord(word)
+        const firstResult = search.getRes()[0]
+
+        if (!firstResult) {
+            return res.status(404).json({ data: '' })
+        }
+
+        const result = await rae.fetchWord(firstResult.getId())
+        const definition = result.getDefinitions()[0]?.getDefinition() || ''
+
+        return res.status(200).json({ data: definition })
+    } catch {
+        return res.status(500).json({ error: 'Dictionary lookup failed' })
+    }
 }
-
-
-
-
-
-

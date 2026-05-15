@@ -1,248 +1,59 @@
-
-'use client'
-
 import { fabulas } from '@/db/fabulas';
 import Link from 'next/link';
 
+const DEFAULT_STORY_IMAGE = '/tiger.png';
+const storyCount = Object.keys(fabulas).length;
 
 function Home() {
-
-
-
-
-
-
-
-
     return (
-        <div className='relative bg-gradient-to-tr from-indigo-400 from-10% via-sky-500 via-30% to-emerald-500 to-90% min-h-screen w-screen p-10'>
-            <h1 className='text-white text-center text-[16px] '>Fabulas 3000</h1>
+        <div className='relative min-h-screen w-full overflow-hidden bg-[#fff7d6] px-4 py-6 text-slate-900 md:px-8 md:py-10'>
+            <div className='pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,#fff7d6_0%,#b7ecff_48%,#d8ffd4_100%)]' />
+            <div className='pointer-events-none absolute left-0 right-0 top-0 h-28 bg-[linear-gradient(90deg,#ff8a65,#ffd166,#5ed3f3,#8bd17c)] opacity-90' />
+            <div className='pointer-events-none absolute bottom-0 left-0 right-0 h-20 bg-[linear-gradient(90deg,#8bd17c,#5ed3f3,#ffd166,#ff8a65)] opacity-80' />
 
-            <div className='grid grid-cols-5'>
-                {
-                    Object.entries(fabulas).map((i, index) => {
-                        return <Link href={`Lecture?item=${i[0]}`}> <div className='relative  w-[150px] m-5  rounded-[20px] hover:scale-110 transition-all'>
-                            <img src={i[1].face} className='w-[150px] h-[200px] object-cover rounded-[10px]' alt="" />
-                            <h3 className='relative bg-white text-center rounded-[5px] mt-2 p-2'>{i[1].title}</h3>
-                        </div>
-                        </Link>
-                    })
-                }
+            <header className='relative mx-auto mb-8 flex max-w-6xl flex-col items-center gap-5 rounded-lg border-4 border-white bg-white/85 px-5 py-6 text-center shadow-[0_14px_0_rgba(15,23,42,0.12)] md:flex-row md:justify-between md:px-8 md:text-left'>
+                <div>
+                    <p className='text-sm font-bold uppercase tracking-[0.2em] text-[#ef6c00]'>Lectura para pequenos exploradores</p>
+                    <h1 className='mt-2 text-4xl font-black text-[#1f3a5f] md:text-6xl'>Fabulas 3000</h1>
+                    <p className='mt-3 max-w-2xl text-base font-semibold leading-7 text-slate-700 md:text-lg'>
+                        Elige una historia, escucha cada palabra y practica leyendo en voz alta.
+                    </p>
+                    <div className='mt-4 inline-flex rounded-full bg-[#1f3a5f] px-4 py-2 text-sm font-bold text-white shadow'>
+                        {storyCount} historias para leer
+                    </div>
+                </div>
+
+                <div className='relative h-36 w-36 shrink-0 rounded-full border-4 border-[#ffd166] bg-[#fff2b8] p-3 shadow-lg md:h-44 md:w-44'>
+                    <img
+                        src={DEFAULT_STORY_IMAGE}
+                        className='h-full w-full rounded-full object-cover'
+                        alt='Mascota de Fabulas 3000'
+                    />
+                </div>
+            </header>
+
+            <div className='relative mx-auto grid max-w-6xl grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4'>
+                {Object.entries(fabulas).map(([id, story]) => (
+                    <Link key={id} href={`/Lecture?item=${encodeURIComponent(id)}`} className='group block'>
+                        <article className='relative h-full overflow-hidden rounded-lg border-4 border-white bg-white shadow-[0_8px_0_rgba(15,23,42,0.12)] transition-transform group-hover:-translate-y-1 group-hover:shadow-[0_12px_0_rgba(15,23,42,0.14)]'>
+                            <div className='h-3 bg-[linear-gradient(90deg,#ff8a65,#ffd166,#8bd17c,#5ed3f3)]' />
+                            <img
+                                src={story.face || story.img || DEFAULT_STORY_IMAGE}
+                                className='h-[185px] w-full bg-[#fff2b8] object-contain p-5'
+                                alt={story.title}
+                            />
+                            <div className='border-t-2 border-dashed border-[#ffd166] p-4'>
+                                <h2 className='min-h-[54px] text-center text-lg font-black leading-6 text-[#1f3a5f]'>{story.title}</h2>
+                                <p className='mt-3 rounded-full bg-[#e8f7ff] px-3 py-2 text-center text-xs font-bold uppercase tracking-[0.12em] text-[#1976a3]'>
+                                    Leer ahora
+                                </p>
+                            </div>
+                        </article>
+                    </Link>
+                ))}
             </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         </div>
     )
 }
+
 export default Home
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// 'use client';
-// import { useUser } from '@/context/Context'
-// import { useEffect, useState } from 'react'
-// import { useRouter } from 'next/navigation';
-
-// import React, { useRef } from 'react';
-// import { DownloadTableExcel } from 'react-export-table-to-excel';
-
-// function CotizacionTerrestre() {
-//     const { user, userDB, pdfData, setUserPdfData, setUserSuccess } = useUser()
-//     const router = useRouter()
-//     const [data, setData] = useState([])
-//     const [data2, setData2] = useState('')
-//     let acc = []
-//     const tableRef = useRef(null);
-
-//     console.log(data2.split('\n'))
-//     async function getContacts(e) {
-//         e.preventDefault()
-//         const resDB = await Object.values(data2.split('\n')).map(async (i) => {
-//             const res = await fetch(`https://numeracionyoperadores.cnmc.es/api/portabilidad/movil?numero=${i}&captchaLoad=true`)
-//             const db = await res.json()
-//             acc = [...acc, db]
-//             console.log(res)
-//             return setData(acc)
-//             // console.log(db)
-//             // setData([...data, db])
-//         })
-
-
-//         return setData(acc)
-
-
-//         // const res = await fetch(`https://numeracionyoperadores.cnmc.es/api/portabilidad/movil?numero=677617423&captchaLoad=true`)
-//         // const data = await res.json()
-//         // console.log(data)
-//     }
-
-//     function onChangeHandler2(e) {
-//         setData2(e.target.value)
-
-//     }
-//     return (
-//         <div className="relative flex w-full justify-center items-center min-h-screen bg-black p-12 ">
-//             <div className='relative w-full  flex flex-col justify-center '>
-
-
-//                 <div className='flex mb-12 justify-center items-center'>
-
-//                     <label for="number" class="block mb-2 text-sm font-medium text-[#24ff1c]">Ingresar numeros</label>
-
-//                 </div>
-
-//                 <form class="w-full  mx-auto" onSubmit={getContacts}>
-//                     <div class="w-full mb-5 border-b border-[#818181] md:flex md:flex-wrap md:justify-center">
-
-//                         < textarea type="text"
-//                             className=" border w-full md:w-[150px]  text-sm rounded-lg  block md:mx-2 p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white"
-//                             placeholder='Ingrese el numero'
-//                             rows={20}
-//                             onChange={onChangeHandler2}
-//                             // value={data2[`item${index}`][`ip`] && data2[`item${index}`][`ip`] ? data2[`item${index}`][`ip`] : i[`ip`]}
-//                             required label={'Carrera'}
-//                         />
-
-
-//                     </div>
-//                     <div className='flex w-full justify-center mb-10'>
-
-//                         <button
-//                             type={'submit'}
-//                             className="text-white bg-gradient-to-r from-teal-400 via-teal-500 to-teal-600 hover:bg-gradient-to-br focus:ring-2 focus:outline-none focus:ring-teal-300  font-medium rounded-full text-[16px] w-full  min-w-[150px] px-2 py-2 max-w-[300px] text-center"
-//                         >
-//                             Get Data
-//                         </button>
-//                     </div>
-
-
-
-//                 </form>
-
-
-
-
-
-//                 <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
-//                     <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400" ref={tableRef}>
-//                         <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-//                             <tr>
-//                                 <th scope="col" class="px-6 py-3">
-//                                     #
-//                                 </th>
-//                                 <th scope="col" class="px-6 py-3">
-//                                     Número de teléfono:
-//                                 </th>
-//                                 <th scope="col" class="px-6 py-3">
-//                                     Operador actual:
-//                                 </th>
-//                                 <th scope="col" class="px-6 py-3">
-//                                     Fecha consulta:
-//                                 </th>
-
-//                             </tr>
-//                         </thead>
-//                         <tbody>
-//                             {data && data.map((i, index) => {
-
-//                                 return <tr class="odd:bg-white odd:dark:bg-gray-900 even:bg-gray-50 even:dark:bg-gray-800 border-b dark:border-gray-700">
-//                                     <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-//                                         {index + 1}
-//                                     </th>
-//                                     <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-//                                         {i.numero}
-//                                     </th>
-//                                     <td class="px-6 py-4">
-//                                         {i.operador && i.operador !== undefined && i.operador.nombre ? i.operador.nombre : 'Operador Inexistente'}
-//                                     </td>
-//                                     <td class="px-6 py-4">
-//                                         {i.fecha && i.fecha !== undefined ? i.fecha : 'Fecha Inexistente'}
-//                                     </td>
-//                                 </tr>
-
-//                             })}
-//                         </tbody>
-//                     </table>
-//                 </div>
-
-
-//                 <div className='p-10 flex justify-center w-full'>
-
-//                     <DownloadTableExcel
-//                         filename="users table"
-//                         sheet="users"
-//                         currentTableRef={tableRef.current}
-//                     >
-//                         <button
-//                             className="text-white  bg-gradient-to-r from-red-400 via-red-500 to-red-600 hover:bg-gradient-to-br focus:ring-2 focus:outline-none focus:ring-red-300 font-medium rounded-full text-[16px] w-full  min-w-[150px] px-2 py-2 max-w-[300px] text-center"
-//                         >
-//                             Export excel
-//                         </button>
-
-//                     </DownloadTableExcel>
-//                 </div>
-
-
-//             </div>
-
-
-
-
-
-
-
-
-
-//         </div>
-//     )
-// }
-
-// export default CotizacionTerrestre

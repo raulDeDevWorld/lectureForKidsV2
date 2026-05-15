@@ -3,82 +3,56 @@
 @tailwind utilities;
 
 :root {
-  --main-bg-color: #0064FA;
-  --font-small: 10px;
-  --font-normal: 12px;
-  --font-large: 16px;
-
-  --font-weight-ligth: 00;
-  --font-weight-medium: 300;
-  --font-weight-bold: 500;
-
-  --color-primary: #2A52BE;
-  --color-secondary: #5270E9;
-  --color-white: white;
-
-  --border-radious: 15px;
-  --link-color: #14EFA5;
+  --color-ink: #1f3a5f;
+  --color-sun: #ffd166;
+  --color-leaf: #8bd17c;
+  --color-sky: #5ed3f3;
+  --color-coral: #ff8a65;
 }
+
 html,
 body {
   margin: 0;
-  padding: 0;
   min-width: 100vw;
   min-height: 100vh;
-  font-size: 12px;
-  font-weight: 300;
+  overflow-x: hidden;
+  background: #fff7d6;
+  color: var(--color-ink);
 }
-
 
 * {
   box-sizing: border-box;
-  font-weight: 300;
-
 }
 
-input:focus {
-  outline: 1px solid #3e2a82;
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
 }
 
-/* 
-input[type='text'],
-input[type='number'],
-textarea {
-  font-size: 16px;
-} */
+button:focus-visible,
+a:focus-visible {
+  outline: 4px solid var(--color-sun);
+  outline-offset: 4px;
+}
 
-
-
-
-
-
+::selection {
+  background: var(--color-sun);
+  color: var(--color-ink);
+}
 
 @media (min-width: 1024px) {
-
-  /* Designing for scroll-bar */
   ::-webkit-scrollbar {
-    width: 7px;
-    height: 7px;
-    z-index: 100000000000000000000000;
+    width: 10px;
+    height: 10px;
+  }
 
+  ::-webkit-scrollbar-track {
+    background: #fff7d6;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-coral);
+    border: 3px solid #fff7d6;
+    border-radius: 999px;
+  }
 }
-
-/* Track */
-::-webkit-scrollbar-track {
-    background: rgb(255, 255, 255);
-    border-radius: 5px;
-    z-index: 100000000000000000000000;
-
-}
-
-/* Handle */
-::-webkit-scrollbar-thumb {
-    background: #a8a8a8;
-    border-radius: 5px;
-    z-index: 100000000000000000000000;
-}
-}
-
-
-
-

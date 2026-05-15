@@ -1,36 +1,26 @@
-
-import { UserProvider } from '../context/Context'
 import './globals.css'
 import { Inter } from 'next/font/google'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export default function RootLayout({ children }) {
-
   return (
     <html lang="es" style={{ scrollBehavior: 'smooth' }}>
       <head>
-        <link rel="icon" href="/logo.jpeg" />
-        <link rel='manifest' href='/manifest.json' />
-        <link rel='apple-touch-icon' href='/logo.jpeg' />
+        <link rel="icon" href="/tiger.png" />
+        <link rel="manifest" href="/manifest.json" />
+        <link rel="apple-touch-icon" href="/tiger.png" />
         <meta name="theme-color" content="#000000" />
-        <meta name="msapplication-navbutton-color" content="#000000" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="#000000" />
-        <meta name="description" content="Informacion de Operadores Moviles" />
-        <meta name="keywords" content="Operadores Moviles" />
-        <meta name="author" content="ANONYMOUS" />
-        <title>Operadores Moviles</title>
+        <meta name="description" content="Aplicacion de lectura infantil con fabulas, voz y diccionario." />
+        <meta name="keywords" content="fabulas, lectura infantil, cuentos, voz" />
+        <meta name="author" content="Fabulas 3000" />
+        <title>Fabulas 3000</title>
       </head>
-      <body className={inter.className}   >
-        <UserProvider>
-
-          <main id='home' className='min-h-screen bg-gradient-to-t from-[#00061880] to-[#000618d1]'>
-            {children}
-          </main>
-        </UserProvider>
+      <body className={inter.className}>
+        <main id="home" className="min-h-screen">
+          {children}
+        </main>
       </body>
     </html>
   )
 }
-
-

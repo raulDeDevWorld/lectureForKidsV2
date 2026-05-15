@@ -1,73 +1,108 @@
 'use client'
-import useSpeechToText from 'react-hook-speech-to-text';
+
+import { useEffect, useRef } from 'react'
 import style from '@/components/SpeechToText.module.css'
-function AnyComponent({ value, setValue, lecture, setLecture, refLecture, stories2, refLecture2, refLecture3, error,
+import { SPEECH_EVENT_TYPE } from '@/lib/readingMatcher'
+
+function SpeechToText({
+    setValue,
+    value,
+    resetKey,
+    currentWord,
+    missedStreak,
+    onSpeech,
+    error,
     interimResult,
     isRecording,
     results,
     startSpeechToText,
-    stopSpeechToText, }) {
+    stopSpeechToText,
+}) {
+    const processedFinalCountRef = useRef(0)
+    const lastInterimRef = useRef('')
 
+    useEffect(() => {
+        processedFinalCountRef.current = results.length
+        lastInterimRef.current = ''
+        setValue('')
+    }, [resetKey, setValue])
 
-    if (error) return <p>Web Speech API is not available in this browser 🤷‍</p>;
+    useEffect(() => {
+        if (!isRecording || !interimResult) return
+        if (interimResult === lastInterimRef.current) return
 
-    // var nombres = ["Rita", "Pedro", "Miguel", "Ana", "Vanesa"];
-    // var masculinos = nombres.slice(1);
-    console.log(stories2)
+        lastInterimRef.current = interimResult
+        onSpeech(interimResult, SPEECH_EVENT_TYPE.INTERIM)
 
-    const handlerSpeechText = () => {
-        if (isRecording) {
-            if (interimResult !== undefined) {
-                if (refLecture3.current.value !== undefined) refLecture3.current.value = interimResult
-                refLecture.current.value = refLecture.current.value !== undefined ? [...refLecture.current.value, interimResult.split(' ').pop()] : [interimResult.split(' ').pop()]
+        const finalTranscript = results.map((result) => result.transcript).join(' ')
+        setValue(`${finalTranscript} ${interimResult}`.trim())
+    }, [interimResult, isRecording, onSpeech, results, setValue])
 
-                if (refLecture.current.value !== undefined) {
-                    const data = stories2.split(' ').map((i, index) => refLecture.current.value.slice(index).find((element) => element.toLowerCase() === i.toLowerCase().replaceAll(/[.,:;'"]/g, "").toLowerCase()))
-                    refLecture2.current.value = data.indexOf(undefined) !== -1 ? [...data.slice(0, data.indexOf(undefined))] : data
-                    refLecture.current.value = data.indexOf(undefined) !== -1 ? [...data.slice(0, data.indexOf(undefined))] : data
+    useEffect(() => {
+        if (results.length <= processedFinalCountRef.current) return
 
-                }
-                if (refLecture.current.value !== undefined && refLecture2.current.value.length === stories2.split(' ').length) {
-                        setLecture(lecture === 'content' ? 'teaching': lecture === 'teaching' ?  'COMPLETE': 'content')
-                        refLecture.current.value = []
-                        refLecture2.current.value = []
+        const newResults = results.slice(processedFinalCountRef.current)
+        processedFinalCountRef.current = results.length
+        const finalSpeech = newResults.map((result) => result.transcript).join(' ').trim()
 
-                }
-            }
-
-            const res = results.reduce((acc, result) => {
-                return acc + result.transcript
-            }, '')
-
-            setValue(res)
+        if (finalSpeech) {
+            onSpeech(finalSpeech, SPEECH_EVENT_TYPE.FINAL)
+            setValue(results.map((result) => result.transcript).join(' '))
         }
-        console.log('repeat')
+    }, [onSpeech, results, setValue])
+
+    if (error) {
+        return (
+            <div className='fixed bottom-4 left-4 right-4 z-20 rounded-lg border-4 border-[#ffd166] bg-white p-4 text-center text-sm font-bold text-[#1f3a5f] shadow'>
+                El reconocimiento de voz no esta disponible en este navegador.
+            </div>
+        )
     }
-    handlerSpeechText()
+
+    const helperText = isRecording
+        ? missedStreak >= 3
+            ? 'Intenta repetir la palabra resaltada'
+            : currentWord
+                ? `Ahora lee: ${currentWord}`
+                : 'Sigue leyendo'
+        : 'Presiona el microfono y empieza a leer'
 
     return (
-        <div className=' absolute bottom-0 left-0 h-[200px]  w-screen flex justify-center'>
-            <div className='absolute bottom-[-100px] left-0 h-[200px] w-[200px] flex justify-center items-start rounded-t-full bg-black'>
-                <div className='flex  items-center justify-center '>
-                    <div className={isRecording && style.spinnerContainer}>
-                        <div className={isRecording && style.spinner}>
-                            <button className={`w-[45px] h-[45px] flex justify-center items-center relative cursor-pointer  rounded-full transition-all  p-[2px] text-[12px] border-[2px] border-[brown] shadow z-50 ${isRecording ? 'bg-[brown]' : 'bg-[transparent]'} ${style.animation}`} onClick={isRecording ? stopSpeechToText : startSpeechToText}>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="none" stroke={isRecording ? 'white' : 'brown'} stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" /></svg>
-                            </button>
-                            <div>
-                            </div>
-                            <div>
-                            </div>
-                        </div>
+        <div className='fixed bottom-4 left-0 right-0 z-10 flex justify-center px-4 pointer-events-none'>
+            <div className='flex w-full max-w-3xl items-center gap-3 rounded-full border-4 border-white bg-white/95 p-3 shadow-[0_8px_0_rgba(15,23,42,0.14)] pointer-events-auto'>
+                <div className={isRecording ? style.spinnerContainer : ''}>
+                    <div className={isRecording ? style.spinner : ''}>
+                        <button
+                            type='button'
+                            className={`relative z-50 flex h-16 w-16 shrink-0 cursor-pointer items-center justify-center rounded-full border-4 p-2 shadow transition-all ${isRecording ? 'border-[#ef6c00] bg-[#ff8a65]' : 'border-[#ffd166] bg-[#fff2b8]'} ${style.animation}`}
+                            onClick={isRecording ? stopSpeechToText : startSpeechToText}
+                            aria-label={isRecording ? 'Detener lectura' : 'Iniciar lectura'}
+                        >
+                            <svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24'>
+                                <path
+                                    fill='none'
+                                    stroke={isRecording ? 'white' : '#1f3a5f'}
+                                    strokeLinecap='round'
+                                    strokeLinejoin='round'
+                                    strokeWidth='1.8'
+                                    d='M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z'
+                                />
+                            </svg>
+                        </button>
                     </div>
-                    <div className={`bg-white w-full rounded-[10px] ml-[10px] flex items-center ${interimResult && 'px-5 min-h-[45px]'}`}>{interimResult}</div>
+                </div>
 
+                <div className='min-w-0 flex-1'>
+                    <p className='text-xs font-black uppercase tracking-[0.16em] text-[#ef6c00]'>
+                        {isRecording ? 'Escuchando' : 'Practica de lectura'}
+                    </p>
+                    <div className='mt-1 min-h-[38px] rounded-full bg-[#e8f7ff] px-4 py-2 text-base font-bold text-[#1f3a5f]'>
+                        {value || helperText}
+                    </div>
                 </div>
             </div>
         </div>
-    );
+    )
 }
 
-
-
-export default AnyComponent
+export default SpeechToText

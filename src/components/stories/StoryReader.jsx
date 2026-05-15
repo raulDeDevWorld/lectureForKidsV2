@@ -2,12 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
-import useSpeechToText from 'react-hook-speech-to-text'
-import { ArrowLeftIcon, HeartIcon, MicrophoneIcon, SpeakerIcon } from '@/components/icons/Icons'
+import { ArrowLeftIcon, HeartIcon, SpeakerIcon } from '@/components/icons/Icons'
 import { useDictionaryLookup } from '@/features/dictionary/hooks/useDictionaryLookup'
 import { DictionaryModal } from '@/features/reading/components/DictionaryModal'
 import { SpeechToText } from '@/features/reading/components/SpeechToText'
 import { StoryText } from '@/features/reading/components/StoryText'
+import { useBrowserSpeechRecognition } from '@/features/reading/hooks/useBrowserSpeechRecognition'
 import { useReadingSession } from '@/features/reading/hooks/useReadingSession'
 import { useSpeechPlayback } from '@/features/reading/hooks/useSpeechPlayback'
 import { FavoriteButton } from './FavoriteButton'
@@ -47,15 +47,7 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
         results,
         startSpeechToText,
         stopSpeechToText,
-    } = useSpeechToText({
-        continuous: true,
-        useLegacyResults: false,
-        timeout: 2500,
-        speechRecognitionProperties: {
-            lang: 'es-MX',
-            interimResults: true,
-        },
-    })
+    } = useBrowserSpeechRecognition({ lang: 'es-MX' })
 
     function toggleTextSize() {
         setTextSizeIndex((current) => (current + 1) % textSizes.length)
@@ -188,41 +180,28 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
                     </div>
 
                     <div className='mt-5 rounded-3xl bg-[#F3F4F6] p-4'>
-                        <div className='flex items-start justify-between gap-3'>
-                            <div className='min-w-0 flex-1'>
-                                <div className='flex items-center justify-between text-xs font-black uppercase tracking-[0.14em] text-[#7A8194]'>
-                                    <span>Progreso {progressPercent}%</span>
-                                    <span>{session.currentIndex}/{session.wordTokens.length}</span>
-                                </div>
-                                <div className='mt-2 h-3 overflow-hidden rounded-full bg-white'>
-                                    <div
-                                        className='h-full rounded-full bg-[linear-gradient(90deg,#A7D8F5,#BFE8D4,#FFD166)] transition-all duration-300'
-                                        style={{ width: `${progressPercent}%` }}
-                                    />
-                                </div>
-                                <p className='mt-3 text-sm font-black text-[#7A8194]'>
-                                    {isListening
-                                        ? currentWord
-                                            ? `Escuchando: ${currentWord}`
-                                            : 'Escuchando tu lectura'
-                                        : currentWord
-                                            ? `Lee en voz alta: ${currentWord}`
-                                            : canRecord
-                                                ? 'Presiona el microfono y comienza.'
-                                                : 'El reconocimiento de voz no esta disponible.'}
-                                </p>
-                            </div>
-
-                            <button
-                                type='button'
-                                aria-label={canRecord ? (isListening ? 'Detener microfono' : 'Activar microfono') : 'Microfono no disponible'}
-                                onClick={toggleRecording}
-                                disabled={!canRecord}
-                                className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-white shadow-[0_7px_0_rgba(31,42,68,0.16)] transition active:translate-y-0.5 active:shadow-none ${isListening ? 'bg-[#ff6b6b]' : 'bg-[#1F2A44]'} ${canRecord ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}`}
-                            >
-                                <MicrophoneIcon className='h-7 w-7' />
-                            </button>
+                        <div className='flex items-center justify-between text-xs font-black uppercase tracking-[0.14em] text-[#7A8194]'>
+                            <span>Progreso {progressPercent}%</span>
+                            <span>{session.currentIndex}/{session.wordTokens.length}</span>
                         </div>
+                        <div className='mt-2 h-3 overflow-hidden rounded-full bg-white'>
+                            <div
+                                className='h-full rounded-full bg-[linear-gradient(90deg,#A7D8F5,#BFE8D4,#FFD166)] transition-all duration-300'
+                                style={{ width: `${progressPercent}%` }}
+                            />
+                        </div>
+
+                        <p className='mt-3 rounded-2xl bg-white/70 px-4 py-3 text-sm font-black text-[#7A8194]'>
+                            {isListening
+                                ? currentWord
+                                    ? `Escuchando: ${currentWord}`
+                                    : 'Escuchando tu lectura'
+                                : currentWord
+                                    ? `Lee en voz alta: ${currentWord}`
+                                    : canRecord
+                                        ? 'Activa el microfono en la tarjeta inferior para comenzar.'
+                                        : 'El reconocimiento de voz no esta disponible.'}
+                        </p>
                     </div>
 
                     <section className='mt-6 rounded-[2rem] bg-[#F8FBFF] p-4 shadow-inner'>

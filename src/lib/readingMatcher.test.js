@@ -59,6 +59,28 @@ test('allows skipped words as assisted when the next strong match appears', () =
     assert.ok(events.some((event) => event.type === 'WORD_ASSISTED'))
 })
 
+test('can align speech that starts a few words after the current word', () => {
+    const initial = createReadingSession('En la selva un leon poderoso atrapo a un raton')
+    const { session } = applySpeechEvent(initial, createSpeechEvent({ text: 'leon poderoso atrapo' }))
+
+    assert.equal(session.currentIndex, 7)
+    assert.deepEqual(
+        session.wordStates.slice(0, 7).map((state) => state.status),
+        ['assisted', 'assisted', 'assisted', 'assisted', 'matched', 'matched', 'matched']
+    )
+})
+
+test('can align speech after recognition drops short starter words', () => {
+    const initial = createReadingSession('En la selva un leon poderoso atrapo')
+    const { session } = applySpeechEvent(initial, createSpeechEvent({ text: 'selva leon poderoso' }))
+
+    assert.equal(session.currentIndex, 6)
+    assert.deepEqual(
+        session.wordStates.slice(0, 6).map((state) => state.status),
+        ['assisted', 'assisted', 'matched', 'assisted', 'matched', 'matched']
+    )
+})
+
 test('accepts small recognition differences with confidence metadata', () => {
     assert.ok(getWordMatchScore('perseverancia', 'perseveransia') >= 0.8)
     assert.equal(getWordMatchScore('raton', 'raton'), 1)

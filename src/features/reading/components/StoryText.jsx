@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { normalizeWord } from '@/lib/readingMatcher'
 
 export function StoryText({
@@ -9,6 +10,7 @@ export function StoryText({
     section,
     text,
 }) {
+    const [selectedTokenKey, setSelectedTokenKey] = useState(null)
     const sectionIndex = ['title', 'content', 'teaching'].indexOf(section)
     const activeIndex = ['title', 'content', 'teaching'].indexOf(activeSection)
     const sectionCompleted = activeSection === 'COMPLETE' || sectionIndex < activeIndex
@@ -34,21 +36,28 @@ export function StoryText({
 
                 const raw = tokens ? token.raw : token
                 const cleanToken = normalizeWord(raw)
+                const tokenKey = `${section}-${index}`
                 const status = sectionCompleted ? 'matched' : sectionActive ? token.status : 'pending'
                 const isCurrent = status === 'current'
+                const isSelected = selectedTokenKey === tokenKey
                 const classNames = [
                     'cursor-pointer rounded-xl px-1.5 py-0.5 transition-all duration-200 hover:bg-[#fff1c7]',
-                    status === 'matched' ? 'bg-[#CFF8DE] text-[#14532d] ring-1 ring-[#86EFAC]' : '',
-                    status === 'assisted' ? 'bg-[#FFF1B8] text-[#8a5a00] ring-1 ring-[#FACC15]' : '',
+                    status === 'matched' ? 'bg-[#CFF8DE] text-[#14532d] underline decoration-[#22C55E] decoration-4 underline-offset-4 ring-1 ring-[#86EFAC]' : '',
+                    status === 'assisted' ? 'bg-[#FFF1B8] text-[#8a5a00] underline decoration-[#FACC15] decoration-dashed decoration-4 underline-offset-4 ring-1 ring-[#FACC15]' : '',
                     isCurrent ? 'bg-[#4cc9f0] text-[#082f49] underline decoration-[#ff6b6b] decoration-4 underline-offset-4 shadow-[0_4px_0_rgba(8,47,73,0.14)] ring-2 ring-[#0284C7]' : '',
+                    isSelected ? 'text-[#1F2A44] ring-2 ring-[#F59E0B] shadow-[0_4px_0_rgba(245,158,11,0.20)]' : '',
                 ].join(' ')
 
                 return (
                     <span
-                        key={`${section}-${index}`}
+                        key={tokenKey}
                         className={classNames}
+                        style={isSelected ? { backgroundColor: '#FFE08A' } : undefined}
                         onDoubleClick={() => onLookupWord(cleanToken || raw)}
-                        onClick={() => onPlayWord(raw)}
+                        onClick={() => {
+                            setSelectedTokenKey(tokenKey)
+                            onPlayWord(raw)
+                        }}
                     >
                         {raw}
                     </span>

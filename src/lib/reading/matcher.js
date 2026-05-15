@@ -1,4 +1,4 @@
-const DEFAULT_MAX_LOOKAHEAD = 2
+const DEFAULT_MAX_LOOKAHEAD = 8
 
 export function findBestMatch(wordTokens, currentIndex, heard, options = {}) {
     const maxLookahead = options.maxLookahead ?? DEFAULT_MAX_LOOKAHEAD

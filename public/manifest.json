@@ -1,15 +1,17 @@
 {
   "name": "Fabulas 3000",
   "short_name": "Fabulas",
+  "description": "Practica lectura en voz alta con fabulas interactivas.",
   "icons": [
     {
       "src": "/tiger.png",
-      "sizes": "384x384",
-      "type": "image/png"
+      "sizes": "192x192 384x384 512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ],
-  "theme_color": "#0f172a",
-  "background_color": "#0f172a",
+  "theme_color": "#FFF9EF",
+  "background_color": "#FFF9EF",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait"

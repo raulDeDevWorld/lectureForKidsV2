@@ -2,8 +2,11 @@
 
 import dynamic from 'next/dynamic'
 
-const Reader = dynamic(() => import('@/components/Component'), { ssr: false })
+const StoryReader = dynamic(
+    () => import('@/features/reading/components/StoryReader').then((module) => module.StoryReader),
+    { ssr: false }
+)
 
 export default function LecturePage() {
-    return <Reader />
+    return <StoryReader />
 }

@@ -73,8 +73,8 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
 
     return (
         <div className='relative min-h-screen overflow-hidden bg-[#FFF9EF] pb-40 text-[#1F2A44]'>
-            <div className='pointer-events-none absolute -left-24 top-16 h-56 w-56 rounded-full bg-[#A7D8F5]/35 blur-3xl' />
-            <div className='pointer-events-none absolute -right-20 top-72 h-56 w-56 rounded-full bg-[#FFC3A1]/35 blur-3xl' />
+            <div className='absolute -left-24 top-16 h-56 w-56 rounded-full bg-[#A7D8F5]/35 blur-3xl' />
+            <div className='absolute -right-20 top-72 h-56 w-56 rounded-full bg-[#FFC3A1]/35 blur-3xl' />
 
             <div className='relative mx-auto flex min-h-screen w-full max-w-3xl flex-col'>
                 <header className='sticky top-0 z-30 px-3 py-3'>

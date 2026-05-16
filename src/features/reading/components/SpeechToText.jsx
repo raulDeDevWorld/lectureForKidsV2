@@ -4,6 +4,8 @@ import style from './SpeechToText.module.css'
 
 export function SpeechToText({
     value,
+    stableWords = [],
+    unstableText = '',
     currentWord,
     missedStreak,
     error,
@@ -23,6 +25,7 @@ export function SpeechToText({
 
     const canRecord = !error
     const buttonBackground = isRecording ? '#ff6b6b' : '#172554'
+    const hasTranscriptParts = stableWords.length > 0 || unstableText
 
     function handleMicrophoneClick() {
         if (!canRecord) return
@@ -35,6 +38,25 @@ export function SpeechToText({
         <div className='fixed inset-x-0 bottom-0 z-50 flex justify-center md:px-3 pt-3'>
             <div className='pointer-events-auto flex w-full max-w-3xl items-center  rounded-t-[30px] bg-[#f3f3f3] p-3 shadow-[0_12px_0_rgba(23,37,84,0.10),0_22px_60px_rgba(23,37,84,0.22)]'>
                 <div className='w-full'>
+                    <div className='mb-2 line-clamp-2 min-h-[42px] rounded-2xl bg-[#fff7df] px-4 py-2 text-sm font-black leading-6 text-[#172554] sm:text-base'>
+                        {hasTranscriptParts ? (
+                            <>
+                                {stableWords.map((word, index) => (
+                                    <span key={`${word}-${index}`} className='text-[#172554]'>
+                                        {word}{' '}
+                                    </span>
+                                ))}
+                                {unstableText && (
+                                    <span className='animate-pulse text-[#7A8194]'>
+                                        {unstableText}
+                                    </span>
+                                )}
+                            </>
+                        ) : (
+                            value || helperText
+                        )}
+                    </div>
+
                     <button
                         type='button'
                         className='mt-2 flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-black shadow-[0_5px_0_rgba(23,37,84,0.16)] transition active:translate-y-0.5 active:shadow-none'

@@ -43,7 +43,7 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
         startSpeechToText,
         stopSpeechToText,
     } = useBrowserSpeechRecognition({ lang: 'es-MX' })
-    const { displayText } = useSpeechReadingBridge({
+    const { displayText, stableWords, unstableText } = useSpeechReadingBridge({
         interimResult,
         onSpeech: handleSpeech,
         resetKey: `${story.id}-${section}`,
@@ -202,6 +202,8 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
                 startSpeechToText={startListening}
                 stopSpeechToText={stopListening}
                 value={displayText}
+                stableWords={stableWords}
+                unstableText={unstableText}
                 currentWord={currentWord}
                 missedStreak={session.missedStreak}
             />

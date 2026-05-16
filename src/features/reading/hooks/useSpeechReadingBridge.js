@@ -1,5 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { SPEECH_EVENT_TYPE } from '@/lib/readingMatcher'
+import { createTranscriptParts, normalizeTranscript } from '@/lib/reading/transcript'
+
+const EMPTY_TRANSCRIPT_PARTS = {
+    displayText: '',
+    stableText: '',
+    stableWords: [],
+    unstableText: '',
+}
 
 export function useSpeechReadingBridge({
     interimResult,
@@ -7,7 +15,7 @@ export function useSpeechReadingBridge({
     resetKey,
     results,
 }) {
-    const [displayText, setDisplayText] = useState('')
+    const [transcriptParts, setTranscriptParts] = useState(EMPTY_TRANSCRIPT_PARTS)
     const [sectionFinalStartCount, setSectionFinalStartCount] = useState(results.length)
     const processedFinalCountRef = useRef(0)
     const lastInterimRef = useRef('')
@@ -25,7 +33,7 @@ export function useSpeechReadingBridge({
         processedFinalCountRef.current = resultsLengthRef.current
         setSectionFinalStartCount(resultsLengthRef.current)
         lastInterimRef.current = ''
-        setDisplayText('')
+        setTranscriptParts(EMPTY_TRANSCRIPT_PARTS)
     }, [resetKey])
 
     useEffect(() => {
@@ -34,7 +42,7 @@ export function useSpeechReadingBridge({
 
         lastInterimRef.current = cleanInterim
         onSpeech(cleanInterim, SPEECH_EVENT_TYPE.INTERIM)
-        setDisplayText([finalTranscript, cleanInterim].filter(Boolean).join(' '))
+        setTranscriptParts(createTranscriptParts(finalTranscript, cleanInterim))
     }, [finalTranscript, interimResult, onSpeech])
 
     useEffect(() => {
@@ -56,25 +64,22 @@ export function useSpeechReadingBridge({
         }
 
         lastInterimRef.current = ''
-        setDisplayText(results.slice(sectionFinalStartCount).map((result) => result.transcript).join(' '))
+        setTranscriptParts(createTranscriptParts(
+            results.slice(sectionFinalStartCount).map((result) => result.transcript).join(' '),
+            ''
+        ))
     }, [onSpeech, results, sectionFinalStartCount])
 
     const clearDisplayText = useCallback(() => {
-        setDisplayText('')
+        setTranscriptParts(EMPTY_TRANSCRIPT_PARTS)
     }, [])
 
     return {
         clearDisplayText,
-        displayText,
+        displayText: transcriptParts.displayText,
+        stableText: transcriptParts.stableText,
+        stableWords: transcriptParts.stableWords,
+        transcriptParts,
+        unstableText: transcriptParts.unstableText,
     }
-}
-
-function normalizeTranscript(text) {
-    return String(text || '')
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .replace(/[.,:;'!?\u00a1\u00bf"()[\]{}]/g, '')
-        .replace(/\s+/g, ' ')
-        .trim()
 }

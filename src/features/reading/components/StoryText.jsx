@@ -23,6 +23,11 @@ export function StoryText({
         className,
     ].filter(Boolean).join(' ')
 
+    function handleWordInteraction(tokenKey, raw) {
+        setSelectedTokenKey(tokenKey)
+        onPlayWord(raw)
+    }
+
     return (
         <p className={paragraphClassName}>
             {(tokens || displayText.split(/(\s+)/)).map((token, index) => {
@@ -51,12 +56,19 @@ export function StoryText({
                 return (
                     <span
                         key={tokenKey}
+                        aria-current={isCurrent ? 'true' : undefined}
+                        aria-label={`Palabra ${raw}. ${getStatusLabel(status)}`}
                         className={classNames}
+                        role='button'
                         style={isSelected ? { backgroundColor: '#FFE08A' } : undefined}
+                        tabIndex={0}
                         onDoubleClick={() => onLookupWord(cleanToken || raw)}
-                        onClick={() => {
-                            setSelectedTokenKey(tokenKey)
-                            onPlayWord(raw)
+                        onClick={() => handleWordInteraction(tokenKey, raw)}
+                        onKeyDown={(event) => {
+                            if (event.key === 'Enter' || event.key === ' ') {
+                                event.preventDefault()
+                                handleWordInteraction(tokenKey, raw)
+                            }
                         }}
                     >
                         {raw}
@@ -65,4 +77,11 @@ export function StoryText({
             })}
         </p>
     )
+}
+
+function getStatusLabel(status) {
+    if (status === 'matched') return 'Leida correctamente.'
+    if (status === 'assisted') return 'Avanzada con ayuda.'
+    if (status === 'current') return 'Palabra actual.'
+    return 'Pendiente.'
 }

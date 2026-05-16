@@ -9,8 +9,14 @@ import {
     getWordMatchScore,
     normalizeWord,
     SPEECH_EVENT_TYPE,
-    updateReadingProgress,
 } from './readingMatcher.js'
+
+function applyInterimSpeech(session, text) {
+    return applySpeechEvent(session, createSpeechEvent({
+        text,
+        type: SPEECH_EVENT_TYPE.INTERIM,
+    })).session
+}
 
 test('normalizes accents and punctuation', () => {
     assert.equal(normalizeWord('Rat\u00f3n!'), 'raton')
@@ -42,8 +48,8 @@ test('accepts a complete phrase in one recognition event', () => {
 test('does not regress when interim speech repeats previous words', () => {
     let session = createReadingSession('El Leon y el Raton')
 
-    session = updateReadingProgress(session, 'el leon')
-    session = updateReadingProgress(session, 'el leon y el')
+    session = applyInterimSpeech(session, 'el leon')
+    session = applyInterimSpeech(session, 'el leon y el')
 
     assert.equal(session.currentIndex, 4)
     assert.deepEqual(session.wordStates.slice(0, 4).map((state) => state.status), ['matched', 'matched', 'matched', 'matched'])
@@ -86,21 +92,21 @@ test('accepts small recognition differences with confidence metadata', () => {
     assert.equal(getWordMatchScore('raton', 'raton'), 1)
     assert.equal(getWordMatchScore('el', 'le'), 0)
 
-    const session = updateReadingProgress(createReadingSession('perseverancia'), 'perseveransia')
+    const session = applyInterimSpeech(createReadingSession('perseverancia'), 'perseveransia')
     assert.equal(session.wordStates[0].status, 'matched')
     assert.equal(session.wordStates[0].source, 'fuzzy')
     assert.ok(session.wordStates[0].confidence >= 0.8)
 })
 
 test('reports progress ratio from matched and assisted words', () => {
-    const session = updateReadingProgress(createReadingSession('uno dos tres cuatro'), 'uno tres cuatro')
+    const session = applyInterimSpeech(createReadingSession('uno dos tres cuatro'), 'uno tres cuatro')
 
     assert.equal(getProgressRatio(session), 1)
     assert.equal(session.wordStates[1].status, 'assisted')
 })
 
 test('returns renderable tokens with current word status', () => {
-    const session = updateReadingProgress(createReadingSession('uno dos tres'), 'uno')
+    const session = applyInterimSpeech(createReadingSession('uno dos tres'), 'uno')
     const renderableTokens = getRenderableTokens(session)
     const wordTokens = renderableTokens.filter((token) => token.type === 'word')
 
@@ -112,12 +118,12 @@ test('returns renderable tokens with current word status', () => {
 test('keeps matched words visible as speech advances', () => {
     let session = createReadingSession('uno dos tres cuatro')
 
-    session = updateReadingProgress(session, 'uno dos')
+    session = applyInterimSpeech(session, 'uno dos')
     let wordTokens = getRenderableTokens(session).filter((token) => token.type === 'word')
 
     assert.deepEqual(wordTokens.map((token) => token.status), ['matched', 'matched', 'current', 'pending'])
 
-    session = updateReadingProgress(session, 'tres')
+    session = applyInterimSpeech(session, 'tres')
     wordTokens = getRenderableTokens(session).filter((token) => token.type === 'word')
 
     assert.deepEqual(wordTokens.map((token) => token.status), ['matched', 'matched', 'matched', 'current'])

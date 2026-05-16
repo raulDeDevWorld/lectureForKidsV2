@@ -20,10 +20,13 @@ export function useReadingSession(story, options = {}) {
     const currentText = useMemo(() => {
         if (!story || section === 'COMPLETE') return ''
         const sectionText = Array.isArray(story[section])
-            ? story[section].join(' ')
+            ? story[section].join('\n\n')
             : story[section]
 
-        return String(sectionText || '').replaceAll('\n', ' ').replace(/\s+/g, ' ').trim()
+        return String(sectionText || '')
+            .replace(/[^\S\n]+/g, ' ')
+            .replace(/\n{3,}/g, '\n\n')
+            .trim()
     }, [section, story])
 
     const freshSession = useMemo(() => createReadingSession(currentText), [currentText])

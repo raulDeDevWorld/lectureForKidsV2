@@ -1,87 +1,16 @@
 'use client'
 
-import { useCallback, useEffect, useRef } from 'react'
-import { SPEECH_EVENT_TYPE } from '@/lib/readingMatcher'
 import style from './SpeechToText.module.css'
 
 export function SpeechToText({
-    setValue,
     value,
-    resetKey,
     currentWord,
     missedStreak,
-    onSpeech,
     error,
-    interimResult,
     isRecording,
-    results,
     startSpeechToText,
     stopSpeechToText,
 }) {
-    const processedFinalCountRef = useRef(0)
-    const lastInterimRef = useRef('')
-    const resultsLengthRef = useRef(0)
-
-    const logSpeechState = useCallback((action, extra = {}) => {
-        if (typeof window === 'undefined') return
-
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
-
-        console.info('[SpeechToText]', {
-            action,
-            canUseSpeechRecognition: Boolean(SpeechRecognition),
-            error,
-            hasGetUserMedia: Boolean(navigator.mediaDevices?.getUserMedia),
-            hasStartSpeechToText: typeof startSpeechToText === 'function',
-            hasStopSpeechToText: typeof stopSpeechToText === 'function',
-            interimResult,
-            isRecording,
-            location: window.location.href,
-            protocol: window.location.protocol,
-            resultsLength: results.length,
-            userAgent: navigator.userAgent,
-            ...extra,
-        })
-    }, [error, interimResult, isRecording, results.length, startSpeechToText, stopSpeechToText])
-
-    useEffect(() => {
-        resultsLengthRef.current = results.length
-    }, [results.length])
-
-    useEffect(() => {
-        logSpeechState('state-change')
-    }, [logSpeechState])
-
-    useEffect(() => {
-        processedFinalCountRef.current = resultsLengthRef.current
-        lastInterimRef.current = ''
-        setValue('')
-    }, [resetKey, setValue])
-
-    useEffect(() => {
-        if (!interimResult) return
-        if (interimResult === lastInterimRef.current) return
-
-        lastInterimRef.current = interimResult
-        onSpeech(interimResult, SPEECH_EVENT_TYPE.INTERIM)
-
-        const finalTranscript = results.map((result) => result.transcript).join(' ')
-        setValue(`${finalTranscript} ${interimResult}`.trim())
-    }, [interimResult, isRecording, onSpeech, results, setValue])
-
-    useEffect(() => {
-        if (results.length <= processedFinalCountRef.current) return
-
-        const newResults = results.slice(processedFinalCountRef.current)
-        processedFinalCountRef.current = results.length
-        const finalSpeech = newResults.map((result) => result.transcript).join(' ').trim()
-
-        if (finalSpeech) {
-            onSpeech(finalSpeech, SPEECH_EVENT_TYPE.FINAL)
-            setValue(results.map((result) => result.transcript).join(' '))
-        }
-    }, [onSpeech, results, setValue])
-
     const helperText = isRecording
         ? missedStreak >= 3
             ? 'Intenta repetir la palabra resaltada'
@@ -96,23 +25,10 @@ export function SpeechToText({
     const buttonBackground = isRecording ? '#ff6b6b' : '#172554'
 
     function handleMicrophoneClick() {
-        logSpeechState('button-click', { canRecord })
-
-        if (!canRecord) {
-            console.warn('[SpeechToText] Microphone start blocked by hook error:', error)
-            return
-        }
+        if (!canRecord) return
 
         const action = isRecording ? stopSpeechToText : startSpeechToText
-
-        try {
-            const result = action()
-            Promise.resolve(result)
-                .then(() => logSpeechState(isRecording ? 'stop-called' : 'start-called'))
-                .catch((caughtError) => logSpeechState('action-rejected', { caughtError }))
-        } catch (caughtError) {
-            logSpeechState('action-threw', { caughtError })
-        }
+        action()
     }
 
     return (
@@ -120,14 +36,14 @@ export function SpeechToText({
             <div className='pointer-events-auto flex w-full max-w-3xl items-center gap-3 rounded-[30px] bg-white p-3 shadow-[0_12px_0_rgba(23,37,84,0.10),0_22px_60px_rgba(23,37,84,0.22)]'>
                 <div className='min-w-0 flex-1'>
                     <p className='text-[11px] font-black uppercase tracking-[0.16em] text-[#ff6b6b]'>
-                        {isRecording ? 'Escuchando' : 'Practica de lectura'} · Microfono
+                        {isRecording ? 'Escuchando' : 'Practica de lectura'} - Microfono
                     </p>
                     <div className='mt-1 line-clamp-2 min-h-[42px] rounded-2xl bg-[#fff7df] px-4 py-2 text-sm font-black leading-6 text-[#172554] sm:text-base'>
                         {value || helperText}
                     </div>
                     {error && (
                         <div className='mt-2 rounded-2xl bg-[#FFE4E6] px-4 py-2 text-xs font-black leading-5 text-[#9F1239]'>
-                            Error real del microfono: {error}
+                            Microfono: {error}
                         </div>
                     )}
                     <button

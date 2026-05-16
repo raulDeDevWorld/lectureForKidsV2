@@ -23,14 +23,3 @@ export {
     SPEECH_EVENT_TYPE,
     tokenizeWords,
 }
-
-export function createReadingProgress(text) {
-    return createReadingSession(text)
-}
-
-export function updateReadingProgress(progress, speechText) {
-    return applySpeechEvent(
-        progress,
-        createSpeechEvent({ text: speechText, type: SPEECH_EVENT_TYPE.INTERIM })
-    ).session
-}

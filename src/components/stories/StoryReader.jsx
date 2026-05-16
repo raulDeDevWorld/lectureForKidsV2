@@ -1,14 +1,15 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 import Link from 'next/link'
-import useSpeechToText from 'react-hook-speech-to-text'
 import { ArrowLeftIcon, HeartIcon, SpeakerIcon } from '@/components/icons/Icons'
 import { useDictionaryLookup } from '@/features/dictionary/hooks/useDictionaryLookup'
 import { DictionaryModal } from '@/features/reading/components/DictionaryModal'
 import { SpeechToText } from '@/features/reading/components/SpeechToText'
 import { StoryText } from '@/features/reading/components/StoryText'
+import { useBrowserSpeechRecognition } from '@/features/reading/hooks/useBrowserSpeechRecognition'
 import { useReadingSession } from '@/features/reading/hooks/useReadingSession'
+import { useSpeechReadingBridge } from '@/features/reading/hooks/useSpeechReadingBridge'
 import { useSpeechPlayback } from '@/features/reading/hooks/useSpeechPlayback'
 import { FavoriteButton } from './FavoriteButton'
 import { StoryImage } from './StoryImage'
@@ -20,16 +21,10 @@ const textSizes = [
 ]
 
 export function StoryReader({ isFavorite, onToggleFavorite, story }) {
-    const [speechValue, setSpeechValue] = useState('')
     const [shouldKeepListening, setShouldKeepListening] = useState(false)
     const [textSizeIndex, setTextSizeIndex] = useState(1)
-    const restartTimeoutRef = useRef(null)
     const playWord = useSpeechPlayback()
     const { closeDefinition, definition, lookupDefinition } = useDictionaryLookup()
-    const storyForPractice = useMemo(() => ({
-        ...story,
-        content: story.content.join('\n\n'),
-    }), [story])
     const {
         currentText,
         currentWord,
@@ -38,7 +33,7 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
         renderableTokens,
         section,
         session,
-    } = useReadingSession(storyForPractice, { initialSection: 'content' })
+    } = useReadingSession(story, { initialSection: 'title' })
 
     const {
         error,
@@ -47,14 +42,12 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
         results,
         startSpeechToText,
         stopSpeechToText,
-    } = useSpeechToText({
-        continuous: true,
-        useLegacyResults: false,
-        timeout: 2500,
-        speechRecognitionProperties: {
-            lang: 'es-MX',
-            interimResults: true,
-        },
+    } = useBrowserSpeechRecognition({ lang: 'es-MX' })
+    const { displayText } = useSpeechReadingBridge({
+        interimResult,
+        onSpeech: handleSpeech,
+        resetKey: `${story.id}-${section}`,
+        results,
     })
 
     function toggleTextSize() {
@@ -81,27 +74,8 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
 
     const stopListening = useCallback(() => {
         setShouldKeepListening(false)
-        if (restartTimeoutRef.current) {
-            window.clearTimeout(restartTimeoutRef.current)
-            restartTimeoutRef.current = null
-        }
         stopSpeechToText()
     }, [stopSpeechToText])
-
-    useEffect(() => {
-        if (!shouldKeepListening || isRecording || !canRecord) return
-
-        restartTimeoutRef.current = window.setTimeout(() => {
-            startSpeechToText()
-        }, 350)
-
-        return () => {
-            if (restartTimeoutRef.current) {
-                window.clearTimeout(restartTimeoutRef.current)
-                restartTimeoutRef.current = null
-            }
-        }
-    }, [canRecord, isRecording, shouldKeepListening, startSpeechToText])
 
     return (
         <div className='relative min-h-screen overflow-hidden bg-[#FFF9EF] pb-40 text-[#1F2A44]'>
@@ -200,7 +174,7 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
                             onPlayWord={playWord}
                             renderableTokens={renderableTokens}
                             section='content'
-                            text={storyForPractice.content}
+                            text={story.content}
                         />
                     </section>
 
@@ -224,17 +198,12 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
 
             <SpeechToText
                 error={error}
-                interimResult={interimResult}
                 isRecording={listeningActive}
-                results={results}
                 startSpeechToText={startListening}
                 stopSpeechToText={stopListening}
-                setValue={setSpeechValue}
-                value={speechValue}
-                resetKey={section}
+                value={displayText}
                 currentWord={currentWord}
                 missedStreak={session.missedStreak}
-                onSpeech={handleSpeech}
             />
 
             <DictionaryModal definition={definition} onClose={closeDefinition} />

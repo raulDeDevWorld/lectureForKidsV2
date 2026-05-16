@@ -16,7 +16,6 @@
     "react": "^19.2.6",
     "react-confetti": "^6.4.0",
     "react-dom": "^19.2.6",
-    "react-hook-speech-to-text": "^0.8.0",
     "react-use": "^17.5.1",
     "speak-tts": "^2.0.8"
   },

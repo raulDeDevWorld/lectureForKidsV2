@@ -19,16 +19,12 @@ export default function StoriesPage() {
                         <ArrowLeftIcon className='h-6 w-6' />
                     </Link>
                     <div className='text-center'>
-                        <h1 className='text-3xl font-black text-[#1F2A44]'>Cuentos</h1>
+                        <h1 className='text-3xl font-black text-[#1F2A44]'>Lee Conmigo</h1>
                         <p className='text-sm font-bold text-[#7A8194]'>{stories.length} historias para leer</p>
                     </div>
-                    <RoundedIconButton label='Buscar cuentos'>
-                        <SearchIcon className='h-6 w-6' />
-                    </RoundedIconButton>
+                  
                     </div>
-                    <div className='mt-4 rounded-3xl bg-[#FFF9EF] px-4 py-3'>
-                        <p className='text-sm font-black leading-6 text-[#7A8194]'>Elige un cuento, escucha palabras y practica leyendo en voz alta.</p>
-                    </div>
+                  
                 </header>
 
                 <Suspense fallback={<div className='rounded-3xl bg-white p-6 text-center font-black text-[#7A8194]'>Cargando cuentos...</div>}>

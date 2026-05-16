@@ -1,15 +1,18 @@
-import { findBestMatch } from './matcher.js'
+import { findBestMatch, getPartialWordMatchScore } from './matcher.js'
+import { SPEECH_EVENT_TYPE } from './speechEvents.js'
 import { tokenizeReadingText } from './tokenizer.js'
 
 export const WORD_STATUS = {
     PENDING: 'pending',
     CURRENT: 'current',
+    HEARING: 'hearing',
     MATCHED: 'matched',
     ASSISTED: 'assisted',
 }
 
 export const READING_EVENT_TYPE = {
     WORD_MATCHED: 'WORD_MATCHED',
+    WORD_HEARD: 'WORD_HEARD',
     WORD_ASSISTED: 'WORD_ASSISTED',
     WORD_MISSED: 'WORD_MISSED',
     SECTION_COMPLETED: 'SECTION_COMPLETED',
@@ -61,6 +64,41 @@ export function applySpeechEvent(session, speechEvent) {
         const match = findBestMatch(session.wordTokens, currentIndex, heardToken.normalized)
 
         if (!match) {
+            const expectedToken = session.wordTokens[currentIndex]
+            const partialScore = speechEvent.type === SPEECH_EVENT_TYPE.INTERIM
+                ? getPartialWordMatchScore(expectedToken?.normalized, heardToken.normalized)
+                : 0
+
+            if (partialScore > 0) {
+                wordStates[currentIndex] = {
+                    ...wordStates[currentIndex],
+                    status: WORD_STATUS.HEARING,
+                    confidence: partialScore,
+                    source: 'partial-prefix',
+                    heard: heardToken.raw,
+                }
+                missedStreak = 0
+                events.push({
+                    type: READING_EVENT_TYPE.WORD_HEARD,
+                    index: currentIndex,
+                    expected: expectedToken.raw,
+                    heard: heardToken.raw,
+                    confidence: partialScore,
+                    source: 'partial-prefix',
+                })
+                continue
+            }
+
+            if (wordStates[currentIndex]?.status === WORD_STATUS.HEARING) {
+                wordStates[currentIndex] = {
+                    ...wordStates[currentIndex],
+                    status: WORD_STATUS.PENDING,
+                    confidence: 0,
+                    source: null,
+                    heard: '',
+                }
+            }
+
             missedStreak += 1
             events.push({
                 type: READING_EVENT_TYPE.WORD_MISSED,
@@ -146,6 +184,9 @@ export function getProgressRatio(session) {
 
 export function getWordStatus(session, index) {
     if (!session || index < 0) return WORD_STATUS.PENDING
+    if (index === session.currentIndex && session.wordStates[index]?.status === WORD_STATUS.HEARING) {
+        return WORD_STATUS.HEARING
+    }
     if (index === session.currentIndex && !session.isComplete) return WORD_STATUS.CURRENT
     return session.wordStates[index]?.status || WORD_STATUS.PENDING
 }
@@ -159,7 +200,9 @@ export function getRenderableTokens(session) {
 
         return {
             ...token,
-            status: isCurrent ? WORD_STATUS.CURRENT : state?.status || WORD_STATUS.PENDING,
+            status: isCurrent && state?.status !== WORD_STATUS.HEARING
+                ? WORD_STATUS.CURRENT
+                : state?.status || WORD_STATUS.PENDING,
             confidence: state?.confidence || 0,
             source: state?.source || null,
             heard: state?.heard || '',

@@ -1,4 +1,4 @@
-import { getWordMatchScore, levenshteinDistance } from './reading/matcher.js'
+import { getPartialWordMatchScore, getWordMatchScore, levenshteinDistance } from './reading/matcher.js'
 import {
     applySpeechEvent,
     createReadingSession,
@@ -16,6 +16,7 @@ export {
     createSpeechEvent,
     getProgressRatio,
     getRenderableTokens,
+    getPartialWordMatchScore,
     getWordMatchScore,
     getWordStatus,
     levenshteinDistance,

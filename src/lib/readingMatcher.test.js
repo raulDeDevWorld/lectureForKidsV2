@@ -6,6 +6,7 @@ import {
     createSpeechEvent,
     getProgressRatio,
     getRenderableTokens,
+    getPartialWordMatchScore,
     getWordMatchScore,
     normalizeWord,
     SPEECH_EVENT_TYPE,
@@ -96,6 +97,45 @@ test('accepts small recognition differences with confidence metadata', () => {
     assert.equal(session.wordStates[0].status, 'matched')
     assert.equal(session.wordStates[0].source, 'fuzzy')
     assert.ok(session.wordStates[0].confidence >= 0.8)
+})
+
+test('scores partial prefixes for low-latency current word feedback', () => {
+    assert.equal(getPartialWordMatchScore('leon', 'l'), 0)
+    assert.ok(getPartialWordMatchScore('leon', 'le') > 0)
+    assert.ok(getPartialWordMatchScore('leon', 'leo') > getPartialWordMatchScore('leon', 'le'))
+    assert.equal(getPartialWordMatchScore('leon', 'sol'), 0)
+})
+
+test('marks current word as hearing on a partial prefix without advancing progress', () => {
+    const session = applyInterimSpeech(createReadingSession('leon duerme'), 'le')
+    const wordTokens = getRenderableTokens(session).filter((token) => token.type === 'word')
+
+    assert.equal(session.currentIndex, 0)
+    assert.equal(getProgressRatio(session), 0)
+    assert.equal(session.wordStates[0].status, 'hearing')
+    assert.equal(wordTokens[0].status, 'hearing')
+    assert.equal(wordTokens[1].status, 'pending')
+})
+
+test('confirms a hearing word when a full match arrives', () => {
+    let session = applyInterimSpeech(createReadingSession('leon duerme'), 'le')
+    session = applyInterimSpeech(session, 'leon')
+    const wordTokens = getRenderableTokens(session).filter((token) => token.type === 'word')
+
+    assert.equal(session.currentIndex, 1)
+    assert.equal(session.wordStates[0].status, 'matched')
+    assert.deepEqual(wordTokens.map((token) => token.status), ['matched', 'current'])
+})
+
+test('clears hearing state when the next interim no longer matches', () => {
+    let session = applyInterimSpeech(createReadingSession('leon duerme'), 'le')
+    session = applyInterimSpeech(session, 'zapato')
+    const wordTokens = getRenderableTokens(session).filter((token) => token.type === 'word')
+
+    assert.equal(session.currentIndex, 0)
+    assert.equal(session.wordStates[0].status, 'pending')
+    assert.equal(wordTokens[0].status, 'current')
+    assert.equal(session.missedStreak, 1)
 })
 
 test('reports progress ratio from matched and assisted words', () => {

@@ -42,6 +42,19 @@ export function getWordMatchScore(expected, heard) {
     return 0
 }
 
+export function getPartialWordMatchScore(expected, heard) {
+    if (!expected || !heard) return 0
+    if (expected === heard) return 1
+    if (expected.length <= 3 || heard.length < 2) return 0
+    if (!expected.startsWith(heard)) return 0
+
+    const coverage = heard.length / expected.length
+    if (coverage >= 0.75) return 0.74
+    if (coverage >= 0.5) return 0.62
+
+    return 0.5
+}
+
 export function levenshteinDistance(a, b) {
     const previous = Array.from({ length: b.length + 1 }, (_, index) => index)
     const current = Array.from({ length: b.length + 1 }, () => 0)

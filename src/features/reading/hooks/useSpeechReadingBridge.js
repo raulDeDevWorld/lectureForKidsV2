@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { SPEECH_EVENT_TYPE } from '@/lib/readingMatcher'
-import { createTranscriptParts, normalizeTranscript } from '@/lib/reading/transcript'
+import { createTranscriptParts } from '@/lib/reading/transcript'
 
 const EMPTY_TRANSCRIPT_PARTS = {
     displayText: '',
@@ -11,7 +10,6 @@ const EMPTY_TRANSCRIPT_PARTS = {
 
 export function useSpeechReadingBridge({
     interimResult,
-    onSpeech,
     resetKey,
     results,
 }) {
@@ -41,9 +39,8 @@ export function useSpeechReadingBridge({
         if (!cleanInterim || cleanInterim === lastInterimRef.current) return
 
         lastInterimRef.current = cleanInterim
-        onSpeech(cleanInterim, SPEECH_EVENT_TYPE.INTERIM)
         setTranscriptParts(createTranscriptParts(finalTranscript, cleanInterim))
-    }, [finalTranscript, interimResult, onSpeech])
+    }, [finalTranscript, interimResult])
 
     useEffect(() => {
         if (results.length <= processedFinalCountRef.current) return
@@ -54,21 +51,12 @@ export function useSpeechReadingBridge({
 
         if (!finalSpeech) return
 
-        const wasAlreadyProcessedAsInterim = (
-            lastInterimRef.current &&
-            normalizeTranscript(lastInterimRef.current) === normalizeTranscript(finalSpeech)
-        )
-
-        if (!wasAlreadyProcessedAsInterim) {
-            onSpeech(finalSpeech, SPEECH_EVENT_TYPE.FINAL)
-        }
-
         lastInterimRef.current = ''
         setTranscriptParts(createTranscriptParts(
             results.slice(sectionFinalStartCount).map((result) => result.transcript).join(' '),
             ''
         ))
-    }, [onSpeech, results, sectionFinalStartCount])
+    }, [results, sectionFinalStartCount])
 
     const clearDisplayText = useCallback(() => {
         setTranscriptParts(EMPTY_TRANSCRIPT_PARTS)

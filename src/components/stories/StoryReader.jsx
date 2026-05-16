@@ -11,6 +11,7 @@ import { useBrowserSpeechRecognition } from '@/features/reading/hooks/useBrowser
 import { useReadingSession } from '@/features/reading/hooks/useReadingSession'
 import { useSpeechReadingBridge } from '@/features/reading/hooks/useSpeechReadingBridge'
 import { useSpeechPlayback } from '@/features/reading/hooks/useSpeechPlayback'
+import { SPEECH_EVENT_TYPE } from '@/lib/readingMatcher'
 import { FavoriteButton } from './FavoriteButton'
 import { StoryImage } from './StoryImage'
 
@@ -35,6 +36,14 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
         session,
     } = useReadingSession(story, { initialSection: 'title' })
 
+    const handleInterimResult = useCallback((speechText) => {
+        handleSpeech(speechText, SPEECH_EVENT_TYPE.INTERIM)
+    }, [handleSpeech])
+
+    const handleFinalResult = useCallback((speechText) => {
+        handleSpeech(speechText, SPEECH_EVENT_TYPE.FINAL)
+    }, [handleSpeech])
+
     const {
         error,
         interimResult,
@@ -42,10 +51,13 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
         results,
         startSpeechToText,
         stopSpeechToText,
-    } = useBrowserSpeechRecognition({ lang: 'es-MX' })
+    } = useBrowserSpeechRecognition({
+        lang: 'es-MX',
+        onFinalResult: handleFinalResult,
+        onInterimResult: handleInterimResult,
+    })
     const { displayText, stableWords, unstableText } = useSpeechReadingBridge({
         interimResult,
-        onSpeech: handleSpeech,
         resetKey: `${story.id}-${section}`,
         results,
     })

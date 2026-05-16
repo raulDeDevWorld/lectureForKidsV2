@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { normalizeTranscript } from '@/lib/reading/transcript'
 
 const UNSUPPORTED_ERROR = 'El reconocimiento de voz no esta disponible en este navegador.'
 
@@ -9,13 +10,24 @@ function hasSpeechRecognitionSupport() {
     return Boolean(window.SpeechRecognition || window.webkitSpeechRecognition)
 }
 
-export function useBrowserSpeechRecognition({ lang = 'es-MX' } = {}) {
+export function useBrowserSpeechRecognition({ lang = 'es-MX', onFinalResult, onInterimResult } = {}) {
     const recognitionRef = useRef(null)
     const shouldListenRef = useRef(false)
+    const lastInterimTranscriptRef = useRef('')
+    const onFinalResultRef = useRef(onFinalResult)
+    const onInterimResultRef = useRef(onInterimResult)
     const [error, setError] = useState(() => (hasSpeechRecognitionSupport() ? '' : UNSUPPORTED_ERROR))
     const [interimResult, setInterimResult] = useState('')
     const [isRecording, setIsRecording] = useState(false)
     const [results, setResults] = useState([])
+
+    useEffect(() => {
+        onFinalResultRef.current = onFinalResult
+    }, [onFinalResult])
+
+    useEffect(() => {
+        onInterimResultRef.current = onInterimResult
+    }, [onInterimResult])
 
     useEffect(() => {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
@@ -55,8 +67,25 @@ export function useBrowserSpeechRecognition({ lang = 'es-MX' } = {}) {
 
             setInterimResult(interimText)
 
+            if (interimText) {
+                lastInterimTranscriptRef.current = interimText
+                onInterimResultRef.current?.(interimText)
+            }
+
             if (finalResults.length) {
+                const finalSpeech = finalResults.map((result) => result.transcript).join(' ').trim()
+                const wasAlreadyProcessedAsInterim = (
+                    lastInterimTranscriptRef.current &&
+                    normalizeTranscript(lastInterimTranscriptRef.current) === normalizeTranscript(finalSpeech)
+                )
+
                 setResults((previous) => [...previous, ...finalResults])
+
+                if (finalSpeech && !wasAlreadyProcessedAsInterim) {
+                    onFinalResultRef.current?.(finalSpeech)
+                }
+
+                lastInterimTranscriptRef.current = ''
             }
         }
 
@@ -112,6 +141,7 @@ export function useBrowserSpeechRecognition({ lang = 'es-MX' } = {}) {
     const stopSpeechToText = useCallback(() => {
         const recognition = recognitionRef.current
         shouldListenRef.current = false
+        lastInterimTranscriptRef.current = ''
         setInterimResult('')
 
         if (!recognition) return

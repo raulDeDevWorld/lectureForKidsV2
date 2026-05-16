@@ -32,15 +32,9 @@ export function SpeechToText({
     }
 
     return (
-        <div className=' fixed inset-x-0 bottom-0 z-50 flex justify-center px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3'>
-            <div className='pointer-events-auto flex w-full max-w-3xl items-center gap-3 rounded-[30px] bg-white p-3 shadow-[0_12px_0_rgba(23,37,84,0.10),0_22px_60px_rgba(23,37,84,0.22)]'>
-                <div className='min-w-0 flex-1'>
-                    <p className='text-[11px] font-black uppercase tracking-[0.16em] text-[#ff6b6b]'>
-                        {isRecording ? 'Escuchando' : 'Practica de lectura'} - Microfono
-                    </p>
-                    <div className='mt-1 line-clamp-2 min-h-[42px] rounded-2xl bg-[#fff7df] px-4 py-2 text-sm font-black leading-6 text-[#172554] sm:text-base'>
-                        {value || helperText}
-                    </div>
+        <div className='fixed inset-x-0 bottom-0 z-50 flex justify-center px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3'>
+            <div className='pointer-events-auto flex w-full max-w-3xl items-center gap-3 rounded-[30px] bg-[#f3f3f3] p-3 shadow-[0_12px_0_rgba(23,37,84,0.10),0_22px_60px_rgba(23,37,84,0.22)]'>
+                <div className='min-w-0 flex'>
                     {error && (
                         <div className='mt-2 rounded-2xl bg-[#FFE4E6] px-4 py-2 text-xs font-black leading-5 text-[#9F1239]'>
                             Microfono: {error}
@@ -48,7 +42,7 @@ export function SpeechToText({
                     )}
                     <button
                         type='button'
-                        className='mt-2 flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-black shadow-[0_5px_0_rgba(23,37,84,0.16)] transition active:translate-y-0.5 active:shadow-none'
+                        className='mt-2 flex  items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-black shadow-[0_5px_0_rgba(23,37,84,0.16)] transition active:translate-y-0.5 active:shadow-none'
                         style={{
                             backgroundColor: buttonBackground,
                             border: '3px solid #FFD166',
@@ -75,6 +69,10 @@ export function SpeechToText({
                         </span>
                         {isRecording ? 'Detener microfono' : 'Activar microfono'}
                     </button>
+
+                    <div className='mt-1 line-clamp-2 min-h-[42px] rounded-2xl bg-[#fff7df] px-4 py-2 text-sm font-black leading-6 text-[#172554] sm:text-base'>
+                        {value || helperText}
+                    </div>
                 </div>
             </div>
         </div>

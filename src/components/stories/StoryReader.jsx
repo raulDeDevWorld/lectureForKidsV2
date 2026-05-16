@@ -78,7 +78,7 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
     }, [stopSpeechToText])
 
     return (
-        <div className='relative min-h-screen overflow-hidden bg-[#FFF9EF] pb-40 text-[#1F2A44]'>
+        <div className='relative min-h-screen overflow-hidden bg-[#a6e5fc] pb-40 text-[#1F2A44]'>
             <div className='absolute -left-24 top-16 h-56 w-56 rounded-full bg-[#A7D8F5]/35 blur-3xl' />
             <div className='absolute -right-20 top-72 h-56 w-56 rounded-full bg-[#FFC3A1]/35 blur-3xl' />
 
@@ -124,7 +124,7 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
                     />
                 </section>
 
-                <article className='relative -mt-4 mx-4 flex-1 rounded-[2.25rem] bg-white p-5 shadow-[0_20px_58px_rgba(31,42,68,0.12)] ring-1 ring-white/80 sm:p-7'>
+                <article className='relative -mt-4 mx-4 flex-1 rounded-[2.25rem] bg-[#ffffffb0] p-5 shadow-[0_20px_58px_rgba(31,42,68,0.12)] ring-1 ring-white/80 sm:p-7'>
                     <div className='flex items-start justify-between gap-4'>
                         <div>
                             <p className='w-fit rounded-full bg-[#F3F4F6] px-3 py-1 text-xs font-black uppercase tracking-[0.14em] text-[#7A8194]'>{story.category}</p>
@@ -141,12 +141,12 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
                         <FavoriteButton active={isFavorite} onToggle={onToggleFavorite} />
                     </div>
 
-                    <div className='mt-5 rounded-3xl bg-[#F3F4F6] p-4'>
+                    <div className='mt-5 rounded-3xl bg-[#ffffff] p-4'>
                         <div className='flex items-center justify-between text-xs font-black uppercase tracking-[0.14em] text-[#7A8194]'>
                             <span>Progreso {progressPercent}%</span>
                             <span>{session.currentIndex}/{session.wordTokens.length}</span>
                         </div>
-                        <div className='mt-2 h-3 overflow-hidden rounded-full bg-white'>
+                        <div className='mt-2 h-3  rounded-full bg-[#ffffff] border-[#eeeeee] border-[1px] shadow-lg'>
                             <div
                                 className='h-full rounded-full bg-[linear-gradient(90deg,#A7D8F5,#BFE8D4,#FFD166)] transition-all duration-300'
                                 style={{ width: `${progressPercent}%` }}

@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { normalizeTranscript } from '@/lib/reading/transcript'
+import { getTranscriptDelta, normalizeTranscript } from '@/lib/reading/transcript'
 
 const UNSUPPORTED_ERROR = 'El reconocimiento de voz no esta disponible en este navegador.'
 
@@ -68,8 +68,11 @@ export function useBrowserSpeechRecognition({ lang = 'es-MX', onFinalResult, onI
             setInterimResult(interimText)
 
             if (interimText) {
+                const speechDelta = getTranscriptDelta(lastInterimTranscriptRef.current, interimText)
                 lastInterimTranscriptRef.current = interimText
-                onInterimResultRef.current?.(interimText)
+                if (speechDelta) {
+                    onInterimResultRef.current?.(speechDelta)
+                }
             }
 
             if (finalResults.length) {

@@ -54,6 +54,38 @@ export function createTranscriptParts(confirmedText, partialText) {
     return createParts(confirmed, partialSuffix)
 }
 
+export function getTranscriptDelta(previousText, nextText) {
+    const previous = cleanSpacing(previousText)
+    const next = cleanSpacing(nextText)
+
+    if (!previous || !next) return next
+
+    const previousTokens = previous.split(/\s+/)
+    const nextTokens = next.split(/\s+/)
+    let sharedPrefixSize = 0
+
+    while (
+        sharedPrefixSize < previousTokens.length &&
+        sharedPrefixSize < nextTokens.length &&
+        normalizeTranscript(previousTokens[sharedPrefixSize]) === normalizeTranscript(nextTokens[sharedPrefixSize])
+    ) {
+        sharedPrefixSize += 1
+    }
+
+    if (sharedPrefixSize === previousTokens.length) {
+        return nextTokens.slice(sharedPrefixSize).join(' ').trim()
+    }
+
+    const previousToken = normalizeTranscript(previousTokens[sharedPrefixSize])
+    const nextToken = normalizeTranscript(nextTokens[sharedPrefixSize])
+
+    if (nextToken.startsWith(previousToken) && previousToken.length >= 2) {
+        return nextTokens.slice(sharedPrefixSize).join(' ').trim()
+    }
+
+    return next
+}
+
 function cleanSpacing(text) {
     return String(text || '').replace(/\s+/g, ' ').trim()
 }

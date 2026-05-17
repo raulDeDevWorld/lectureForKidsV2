@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { createTranscriptParts, mergeTranscriptSegments, normalizeTranscript } from './reading/transcript.js'
+import { createTranscriptParts, getTranscriptDelta, mergeTranscriptSegments, normalizeTranscript } from './reading/transcript.js'
 
 test('normalizes transcript accents, punctuation and spacing', () => {
     assert.equal(normalizeTranscript('  El Le\u00f3n,   y el Rat\u00f3n! '), 'el leon y el raton')
@@ -63,4 +63,17 @@ test('marks all text as unstable when there is no confirmed transcript', () => {
             unstableText: 'el leon',
         }
     )
+})
+
+test('extracts only the new suffix from accumulated interim transcripts', () => {
+    assert.equal(getTranscriptDelta('el', 'el leon'), 'leon')
+    assert.equal(getTranscriptDelta('el leon', 'el leon y'), 'y')
+})
+
+test('keeps revised current word when interim expands a partial token', () => {
+    assert.equal(getTranscriptDelta('el le', 'el leon'), 'leon')
+})
+
+test('returns full transcript when interim is revised to a different phrase', () => {
+    assert.equal(getTranscriptDelta('el leon', 'un raton'), 'un raton')
 })

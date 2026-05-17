@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { flushSync } from 'react-dom'
 import {
     applySpeechEvent,
     createReadingSession,
@@ -46,18 +47,20 @@ export function useReadingSession(story, options = {}) {
     }, [currentText, section, session.isComplete])
 
     const handleSpeech = useCallback((speechText, type = SPEECH_EVENT_TYPE.INTERIM) => {
-        setReadingState((previous) => {
-            const previousSession = previous.text === currentText
-                ? previous.session
-                : createReadingSession(currentText)
+        flushSync(() => {
+            setReadingState((previous) => {
+                const previousSession = previous.text === currentText
+                    ? previous.session
+                    : createReadingSession(currentText)
 
-            return {
-                text: currentText,
-                session: applySpeechEvent(
-                    previousSession,
-                    createSpeechEvent({ text: speechText, type })
-                ).session,
-            }
+                return {
+                    text: currentText,
+                    session: applySpeechEvent(
+                        previousSession,
+                        createSpeechEvent({ text: speechText, type })
+                    ).session,
+                }
+            })
         })
     }, [currentText])
 

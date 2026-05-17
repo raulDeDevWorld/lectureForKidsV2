@@ -106,15 +106,19 @@ test('allows skipped words as assisted when the next strong match appears', () =
     assert.ok(events.some((event) => event.type === 'WORD_ASSISTED'))
 })
 
-test('can align speech that starts a few words after the current word', () => {
+test('does not align speech that skips significant words', () => {
     const initial = createReadingSession('En la selva un leon poderoso atrapo a un raton')
     const { session } = applySpeechEvent(initial, createSpeechEvent({ text: 'leon poderoso atrapo' }))
 
-    assert.equal(session.currentIndex, 7)
-    assert.deepEqual(
-        session.wordStates.slice(0, 7).map((state) => state.status),
-        ['assisted', 'assisted', 'assisted', 'assisted', 'matched', 'matched', 'matched']
-    )
+    assert.equal(session.currentIndex, 0)
+    assert.equal(session.acceptedCount, 0)
+    assert.deepEqual(session.wordStates.slice(0, 5).map((state) => state.status), [
+        'pending',
+        'pending',
+        'pending',
+        'pending',
+        'pending',
+    ])
 })
 
 test('can align speech after recognition drops short starter words', () => {
@@ -156,18 +160,19 @@ test('does not jump to a later significant word without the next word confirming
     assert.deepEqual(events.map((event) => event.type), ['WORD_MISSED'])
 })
 
-test('still aligns after a skipped phrase when following words confirm the position', () => {
+test('does not align after a skipped significant phrase even when following words confirm the position', () => {
     const initial = createReadingSession('Una mañana un cuervo encontro queso')
     const { session } = applySpeechEvent(initial, createSpeechEvent({ text: 'cuervo encontro queso' }))
 
-    assert.equal(session.currentIndex, 6)
+    assert.equal(session.currentIndex, 0)
+    assert.equal(session.acceptedCount, 0)
     assert.deepEqual(session.wordStates.map((state) => state.status), [
-        'assisted',
-        'assisted',
-        'assisted',
-        'matched',
-        'matched',
-        'matched',
+        'pending',
+        'pending',
+        'pending',
+        'pending',
+        'pending',
+        'pending',
     ])
 })
 

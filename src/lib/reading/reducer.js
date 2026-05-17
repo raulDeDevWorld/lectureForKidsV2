@@ -267,30 +267,19 @@ function getHearingIndexes(session) {
 }
 
 function canAcceptLookaheadMatch(wordTokens, currentIndex, matchIndex, heardWords, heardIndex) {
-    if (hasRemainingSkippedSignificantWord(wordTokens, currentIndex, matchIndex, heardWords, heardIndex)) {
+    if (hasSkippedSignificantWord(wordTokens, currentIndex, matchIndex)) {
         return false
     }
 
-    if (!needsLookaheadConfirmation(wordTokens, currentIndex, matchIndex)) {
-        return true
-    }
-
-    return hasNextWordConfirmation(wordTokens, matchIndex, heardWords[heardIndex + 1])
+    return !hasRemainingSkippedSignificantWord(wordTokens, currentIndex, matchIndex, heardWords, heardIndex)
 }
 
-function needsLookaheadConfirmation(wordTokens, currentIndex, matchIndex) {
+function hasSkippedSignificantWord(wordTokens, currentIndex, matchIndex) {
     for (let index = currentIndex; index < matchIndex; index += 1) {
         if (isSignificantWord(wordTokens[index]?.normalized)) return true
     }
 
     return false
-}
-
-function hasNextWordConfirmation(wordTokens, matchIndex, nextHeardToken) {
-    const nextExpected = wordTokens[matchIndex + 1]?.normalized
-    if (!nextExpected || !nextHeardToken?.normalized) return false
-
-    return findBestMatch([{ normalized: nextExpected }], 0, nextHeardToken.normalized, { maxLookahead: 0 }) !== null
 }
 
 function hasRemainingSkippedSignificantWord(wordTokens, currentIndex, matchIndex, heardWords, heardIndex) {

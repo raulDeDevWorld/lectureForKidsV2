@@ -55,6 +55,7 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
         lang: 'es-MX',
         onFinalResult: handleFinalResult,
         onInterimResult: handleInterimResult,
+        resetKey: `${story.id}-${section}`,
     })
     const { displayText, stableWords, unstableText } = useSpeechReadingBridge({
         interimResult,

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import {
     applySpeechEvent,
@@ -8,11 +8,15 @@ import {
     getRenderableTokens,
     SPEECH_EVENT_TYPE,
 } from '@/lib/readingMatcher'
+import { isLikelyCarryoverTranscript } from '@/lib/reading/transcript'
 import { NEXT_READING_SECTION } from '../constants/sections'
+
+const SECTION_CARRYOVER_GUARD_MS = 1800
 
 export function useReadingSession(story, options = {}) {
     const initialSection = options.initialSection || 'title'
     const [section, setSection] = useState(initialSection)
+    const carryoverGuardRef = useRef({ expiresAt: 0, text: '' })
     const [readingState, setReadingState] = useState(() => ({
         text: '',
         session: createReadingSession(''),
@@ -40,6 +44,10 @@ export function useReadingSession(story, options = {}) {
         if (!currentText || !session.isComplete || section === 'COMPLETE') return
 
         const timeout = window.setTimeout(() => {
+            carryoverGuardRef.current = {
+                expiresAt: Date.now() + SECTION_CARRYOVER_GUARD_MS,
+                text: currentText,
+            }
             setSection(NEXT_READING_SECTION[section])
         }, 450)
 
@@ -47,6 +55,15 @@ export function useReadingSession(story, options = {}) {
     }, [currentText, section, session.isComplete])
 
     const handleSpeech = useCallback((speechText, type = SPEECH_EVENT_TYPE.INTERIM) => {
+        const carryoverGuard = carryoverGuardRef.current
+        if (
+            carryoverGuard.text &&
+            Date.now() < carryoverGuard.expiresAt &&
+            isLikelyCarryoverTranscript(speechText, carryoverGuard.text)
+        ) {
+            return
+        }
+
         flushSync(() => {
             setReadingState((previous) => {
                 const previousSession = previous.text === currentText

@@ -1,6 +1,12 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { createTranscriptParts, getTranscriptDelta, mergeTranscriptSegments, normalizeTranscript } from './reading/transcript.js'
+import {
+    createTranscriptParts,
+    getTranscriptDelta,
+    isLikelyCarryoverTranscript,
+    mergeTranscriptSegments,
+    normalizeTranscript,
+} from './reading/transcript.js'
 
 test('normalizes transcript accents, punctuation and spacing', () => {
     assert.equal(normalizeTranscript('  El Le\u00f3n,   y el Rat\u00f3n! '), 'el leon y el raton')
@@ -76,4 +82,26 @@ test('keeps revised current word when interim expands a partial token', () => {
 
 test('returns full transcript when interim is revised to a different phrase', () => {
     assert.equal(getTranscriptDelta('el leon', 'un raton'), 'un raton')
+})
+
+test('detects delayed speech fragments from the previous section', () => {
+    assert.equal(
+        isLikelyCarryoverTranscript('el cuervo', 'El Zorro y el Cuervo'),
+        true
+    )
+    assert.equal(
+        isLikelyCarryoverTranscript('zorro cuervo', 'El Zorro y el Cuervo'),
+        true
+    )
+})
+
+test('does not treat new section speech as carryover', () => {
+    assert.equal(
+        isLikelyCarryoverTranscript('una manana un cuervo', 'El Zorro y el Cuervo'),
+        false
+    )
+    assert.equal(
+        isLikelyCarryoverTranscript('desde abajo un zorro', 'El Zorro y el Cuervo'),
+        false
+    )
 })

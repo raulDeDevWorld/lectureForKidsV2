@@ -86,8 +86,38 @@ export function getTranscriptDelta(previousText, nextText) {
     return next
 }
 
+export function isLikelyCarryoverTranscript(speechText, previousText) {
+    const speechTokens = tokenizeNormalizedTranscript(speechText)
+    const previousTokens = tokenizeNormalizedTranscript(previousText)
+
+    if (!speechTokens.length || !previousTokens.length) return false
+    if (speechTokens.length > previousTokens.length) return false
+
+    return containsOrderedTokens(previousTokens, speechTokens)
+}
+
 function cleanSpacing(text) {
     return String(text || '').replace(/\s+/g, ' ').trim()
+}
+
+function tokenizeNormalizedTranscript(text) {
+    return cleanSpacing(text)
+        .split(/\s+/)
+        .map((word) => normalizeTranscript(word))
+        .filter(Boolean)
+}
+
+function containsOrderedTokens(haystack, needles) {
+    let needleIndex = 0
+
+    for (const token of haystack) {
+        if (token === needles[needleIndex]) {
+            needleIndex += 1
+            if (needleIndex >= needles.length) return true
+        }
+    }
+
+    return false
 }
 
 function tokenizeWithNormalizedWords(text) {

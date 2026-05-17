@@ -10,7 +10,12 @@ function hasSpeechRecognitionSupport() {
     return Boolean(window.SpeechRecognition || window.webkitSpeechRecognition)
 }
 
-export function useBrowserSpeechRecognition({ lang = 'es-MX', onFinalResult, onInterimResult } = {}) {
+export function useBrowserSpeechRecognition({
+    lang = 'es-MX',
+    onFinalResult,
+    onInterimResult,
+    resetKey,
+} = {}) {
     const recognitionRef = useRef(null)
     const shouldListenRef = useRef(false)
     const lastInterimTranscriptRef = useRef('')
@@ -28,6 +33,10 @@ export function useBrowserSpeechRecognition({ lang = 'es-MX', onFinalResult, onI
     useEffect(() => {
         onInterimResultRef.current = onInterimResult
     }, [onInterimResult])
+
+    useEffect(() => {
+        lastInterimTranscriptRef.current = ''
+    }, [resetKey])
 
     useEffect(() => {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition

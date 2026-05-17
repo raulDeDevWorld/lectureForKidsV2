@@ -6,6 +6,7 @@ import {
     createSpeechEvent,
     getProgressRatio,
     getRenderableTokens,
+    findPartialLookaheadMatch,
     getPartialWordMatchScore,
     getWordMatchScore,
     normalizeWord,
@@ -106,6 +107,17 @@ test('scores partial prefixes for low-latency current word feedback', () => {
     assert.equal(getPartialWordMatchScore('leon', 'sol'), 0)
 })
 
+test('finds a partial lookahead match when short starter words are delayed', () => {
+    const session = createReadingSession('El Leon duerme')
+    const match = findPartialLookaheadMatch(session.wordTokens, 0, 'le')
+
+    assert.deepEqual(match, {
+        index: 1,
+        score: 0.62,
+        source: 'partial-lookahead',
+    })
+})
+
 test('marks current word as hearing on a partial prefix without advancing progress', () => {
     const session = applyInterimSpeech(createReadingSession('leon duerme'), 'le')
     const wordTokens = getRenderableTokens(session).filter((token) => token.type === 'word')
@@ -115,6 +127,27 @@ test('marks current word as hearing on a partial prefix without advancing progre
     assert.equal(session.wordStates[0].status, 'hearing')
     assert.equal(wordTokens[0].status, 'hearing')
     assert.equal(wordTokens[1].status, 'pending')
+})
+
+test('marks upcoming word as hearing when interim starts after a short current word', () => {
+    const session = applyInterimSpeech(createReadingSession('El Leon duerme'), 'le')
+    const wordTokens = getRenderableTokens(session).filter((token) => token.type === 'word')
+
+    assert.equal(session.currentIndex, 0)
+    assert.equal(getProgressRatio(session), 0)
+    assert.equal(session.wordStates[0].status, 'pending')
+    assert.equal(session.wordStates[1].status, 'hearing')
+    assert.deepEqual(wordTokens.map((token) => token.status), ['current', 'hearing', 'pending'])
+})
+
+test('confirms lookahead hearing when the full word arrives', () => {
+    let session = applyInterimSpeech(createReadingSession('El Leon duerme'), 'le')
+    session = applyInterimSpeech(session, 'leon')
+    const wordTokens = getRenderableTokens(session).filter((token) => token.type === 'word')
+
+    assert.equal(session.currentIndex, 2)
+    assert.deepEqual(session.wordStates.slice(0, 2).map((state) => state.status), ['assisted', 'matched'])
+    assert.deepEqual(wordTokens.map((token) => token.status), ['assisted', 'matched', 'current'])
 })
 
 test('confirms a hearing word when a full match arrives', () => {

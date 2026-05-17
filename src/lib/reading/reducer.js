@@ -1,4 +1,4 @@
-import { findBestMatch, getPartialWordMatchScore } from './matcher.js'
+import { findBestMatch, findPartialLookaheadMatch, getPartialWordMatchScore } from './matcher.js'
 import { SPEECH_EVENT_TYPE } from './speechEvents.js'
 import { tokenizeReadingText } from './tokenizer.js'
 
@@ -55,7 +55,17 @@ export function applySpeechEvent(session, speechEvent) {
     let currentIndex = session.currentIndex
     let missedStreak = session.missedStreak
     let lastAcceptedWord = session.lastAcceptedWord
-    const wordStates = session.wordStates.map((state) => ({ ...state }))
+    const wordStates = session.wordStates.map((state) => (
+        state.status === WORD_STATUS.HEARING
+            ? {
+                ...state,
+                status: WORD_STATUS.PENDING,
+                confidence: 0,
+                source: null,
+                heard: '',
+            }
+            : { ...state }
+    ))
     const events = []
 
     for (const heardToken of speechEvent.words) {
@@ -89,14 +99,28 @@ export function applySpeechEvent(session, speechEvent) {
                 continue
             }
 
-            if (wordStates[currentIndex]?.status === WORD_STATUS.HEARING) {
-                wordStates[currentIndex] = {
-                    ...wordStates[currentIndex],
-                    status: WORD_STATUS.PENDING,
-                    confidence: 0,
-                    source: null,
-                    heard: '',
+            const partialLookahead = speechEvent.type === SPEECH_EVENT_TYPE.INTERIM
+                ? findPartialLookaheadMatch(session.wordTokens, currentIndex, heardToken.normalized)
+                : null
+
+            if (partialLookahead) {
+                wordStates[partialLookahead.index] = {
+                    ...wordStates[partialLookahead.index],
+                    status: WORD_STATUS.HEARING,
+                    confidence: partialLookahead.score,
+                    source: partialLookahead.source,
+                    heard: heardToken.raw,
                 }
+                missedStreak = 0
+                events.push({
+                    type: READING_EVENT_TYPE.WORD_HEARD,
+                    index: partialLookahead.index,
+                    expected: session.wordTokens[partialLookahead.index].raw,
+                    heard: heardToken.raw,
+                    confidence: partialLookahead.score,
+                    source: partialLookahead.source,
+                })
+                continue
             }
 
             missedStreak += 1

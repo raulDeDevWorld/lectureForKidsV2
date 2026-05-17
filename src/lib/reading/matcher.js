@@ -1,4 +1,5 @@
 const DEFAULT_MAX_LOOKAHEAD = 8
+const DEFAULT_PARTIAL_MAX_LOOKAHEAD = 4
 
 export function findBestMatch(wordTokens, currentIndex, heard, options = {}) {
     const maxLookahead = options.maxLookahead ?? DEFAULT_MAX_LOOKAHEAD
@@ -53,6 +54,22 @@ export function getPartialWordMatchScore(expected, heard) {
     if (coverage >= 0.5) return 0.62
 
     return 0.5
+}
+
+export function findPartialLookaheadMatch(wordTokens, currentIndex, heard, options = {}) {
+    const maxLookahead = options.maxLookahead ?? DEFAULT_PARTIAL_MAX_LOOKAHEAD
+    const maxIndex = Math.min(wordTokens.length - 1, currentIndex + maxLookahead)
+
+    for (let index = currentIndex + 1; index <= maxIndex; index += 1) {
+        const expected = wordTokens[index]?.normalized
+        const score = getPartialWordMatchScore(expected, heard)
+
+        if (score > 0) {
+            return { index, score, source: 'partial-lookahead' }
+        }
+    }
+
+    return null
 }
 
 export function levenshteinDistance(a, b) {

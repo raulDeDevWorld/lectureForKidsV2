@@ -65,8 +65,6 @@ export function useBrowserSpeechRecognition({ lang = 'es-MX', onFinalResult, onI
                 }
             }
 
-            setInterimResult(interimText)
-
             if (interimText) {
                 const speechDelta = getTranscriptDelta(lastInterimTranscriptRef.current, interimText)
                 lastInterimTranscriptRef.current = interimText
@@ -75,6 +73,8 @@ export function useBrowserSpeechRecognition({ lang = 'es-MX', onFinalResult, onI
                 }
             }
 
+            setInterimResult(interimText)
+
             if (finalResults.length) {
                 const finalSpeech = finalResults.map((result) => result.transcript).join(' ').trim()
                 const wasAlreadyProcessedAsInterim = (
@@ -82,11 +82,11 @@ export function useBrowserSpeechRecognition({ lang = 'es-MX', onFinalResult, onI
                     normalizeTranscript(lastInterimTranscriptRef.current) === normalizeTranscript(finalSpeech)
                 )
 
-                setResults((previous) => [...previous, ...finalResults])
-
                 if (finalSpeech && !wasAlreadyProcessedAsInterim) {
                     onFinalResultRef.current?.(finalSpeech)
                 }
+
+                setResults((previous) => [...previous, ...finalResults])
 
                 lastInterimTranscriptRef.current = ''
             }

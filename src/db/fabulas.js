@@ -11,7 +11,7 @@ export const fabulas = {
             'El león comprendió que hasta el más pequeño puede hacer algo grande.',
         ],
         teaching: 'La bondad y la gratitud son virtudes que no dependen del tamaño o la fuerza.',
-    },
+    },                
 
     'af679cba-cedb-487b-ybff-6213290d9c88': {
         title: 'El Zorro y el Cuervo',

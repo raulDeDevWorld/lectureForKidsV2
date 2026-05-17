@@ -31,6 +31,7 @@ export function createReadingSession(text) {
             source: null,
             heard: '',
         })),
+        hearingIndexes: [],
         acceptedCount: 0,
         currentIndex: 0,
         lastSpeechText: '',
@@ -57,17 +58,22 @@ export function applySpeechEvent(session, speechEvent) {
     let missedStreak = session.missedStreak
     let lastAcceptedWord = session.lastAcceptedWord
     let acceptedCount = session.acceptedCount ?? countAcceptedWords(session.wordStates)
-    const wordStates = session.wordStates.map((state) => (
-        state.status === WORD_STATUS.HEARING
-            ? {
-                ...state,
-                status: WORD_STATUS.PENDING,
-                confidence: 0,
-                source: null,
-                heard: '',
-            }
-            : { ...state }
-    ))
+    const wordStates = session.wordStates.slice()
+    const previousHearingIndexes = getHearingIndexes(session)
+    const nextHearingIndexes = new Set()
+
+    for (const index of previousHearingIndexes) {
+        if (wordStates[index]?.status !== WORD_STATUS.HEARING) continue
+
+        wordStates[index] = {
+            ...wordStates[index],
+            status: WORD_STATUS.PENDING,
+            confidence: 0,
+            source: null,
+            heard: '',
+        }
+    }
+
     const events = []
 
     for (const heardToken of speechEvent.words) {
@@ -89,6 +95,7 @@ export function applySpeechEvent(session, speechEvent) {
                     source: 'partial-prefix',
                     heard: heardToken.raw,
                 }
+                nextHearingIndexes.add(currentIndex)
                 missedStreak = 0
                 events.push({
                     type: READING_EVENT_TYPE.WORD_HEARD,
@@ -113,6 +120,7 @@ export function applySpeechEvent(session, speechEvent) {
                     source: partialLookahead.source,
                     heard: heardToken.raw,
                 }
+                nextHearingIndexes.add(partialLookahead.index)
                 missedStreak = 0
                 events.push({
                     type: READING_EVENT_TYPE.WORD_HEARD,
@@ -192,6 +200,7 @@ export function applySpeechEvent(session, speechEvent) {
     const nextSession = {
         ...session,
         wordStates,
+        hearingIndexes: Array.from(nextHearingIndexes),
         acceptedCount,
         currentIndex,
         lastSpeechText: speechEvent.text,
@@ -227,6 +236,17 @@ function isAcceptedStatus(status) {
 
 function countAcceptedWords(wordStates) {
     return wordStates.filter((state) => isAcceptedStatus(state.status)).length
+}
+
+function getHearingIndexes(session) {
+    if (Array.isArray(session.hearingIndexes)) {
+        return session.hearingIndexes
+    }
+
+    return session.wordStates.reduce((indexes, state, index) => {
+        if (state.status === WORD_STATUS.HEARING) indexes.push(index)
+        return indexes
+    }, [])
 }
 
 export function getRenderableTokens(session) {

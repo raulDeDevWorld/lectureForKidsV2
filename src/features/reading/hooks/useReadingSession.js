@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { flushSync } from 'react-dom'
 import {
     applySpeechEvent,
     createReadingSession,
@@ -12,11 +11,13 @@ import { isLikelyCarryoverTranscript } from '@/lib/reading/transcript'
 import { NEXT_READING_SECTION } from '../constants/sections'
 
 const SECTION_CARRYOVER_GUARD_MS = 1800
-
 export function useReadingSession(story, options = {}) {
     const initialSection = options.initialSection || 'title'
     const [section, setSection] = useState(initialSection)
+    const animationFrameRef = useRef(null)
     const carryoverGuardRef = useRef({ expiresAt: 0, text: '' })
+    const currentTextRef = useRef('')
+    const pendingSpeechEventsRef = useRef([])
     const [readingState, setReadingState] = useState(() => ({
         text: '',
         session: createReadingSession(''),
@@ -41,6 +42,22 @@ export function useReadingSession(story, options = {}) {
     const currentWord = session.wordTokens[session.currentIndex]?.raw || ''
 
     useEffect(() => {
+        currentTextRef.current = currentText
+        pendingSpeechEventsRef.current = []
+
+        if (animationFrameRef.current) {
+            window.cancelAnimationFrame(animationFrameRef.current)
+            animationFrameRef.current = null
+        }
+    }, [currentText])
+
+    useEffect(() => () => {
+        if (animationFrameRef.current) {
+            window.cancelAnimationFrame(animationFrameRef.current)
+        }
+    }, [])
+
+    useEffect(() => {
         if (!currentText || !session.isComplete || section === 'COMPLETE') return
 
         const timeout = window.setTimeout(() => {
@@ -54,6 +71,39 @@ export function useReadingSession(story, options = {}) {
         return () => window.clearTimeout(timeout)
     }, [currentText, section, session.isComplete])
 
+    const flushPendingSpeechEvents = useCallback(() => {
+        animationFrameRef.current = null
+
+        const pendingEvents = pendingSpeechEventsRef.current
+        pendingSpeechEventsRef.current = []
+
+        if (!pendingEvents.length) return
+
+        setReadingState((previous) => {
+            const text = currentTextRef.current
+            let nextSession = previous.text === text
+                ? previous.session
+                : createReadingSession(text)
+
+            for (const speechEvent of pendingEvents) {
+                nextSession = applySpeechEvent(nextSession, speechEvent).session
+            }
+
+            return {
+                text,
+                session: nextSession,
+            }
+        })
+    }, [])
+
+    const scheduleSpeechEvent = useCallback((speechEvent) => {
+        pendingSpeechEventsRef.current.push(speechEvent)
+
+        if (animationFrameRef.current) return
+
+        animationFrameRef.current = window.requestAnimationFrame(flushPendingSpeechEvents)
+    }, [flushPendingSpeechEvents])
+
     const handleSpeech = useCallback((speechText, type = SPEECH_EVENT_TYPE.INTERIM) => {
         const carryoverGuard = carryoverGuardRef.current
         if (
@@ -64,22 +114,8 @@ export function useReadingSession(story, options = {}) {
             return
         }
 
-        flushSync(() => {
-            setReadingState((previous) => {
-                const previousSession = previous.text === currentText
-                    ? previous.session
-                    : createReadingSession(currentText)
-
-                return {
-                    text: currentText,
-                    session: applySpeechEvent(
-                        previousSession,
-                        createSpeechEvent({ text: speechText, type })
-                    ).session,
-                }
-            })
-        })
-    }, [currentText])
+        scheduleSpeechEvent(createSpeechEvent({ text: speechText, type }))
+    }, [scheduleSpeechEvent])
 
     return {
         currentText,

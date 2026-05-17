@@ -43,6 +43,7 @@ test('accepts a complete phrase in one recognition event', () => {
 
     assert.equal(session.currentIndex, 5)
     assert.equal(session.isComplete, true)
+    assert.equal(session.acceptedCount, 5)
     assert.equal(events.at(-1).type, 'SECTION_COMPLETED')
     assert.deepEqual(session.wordStates.map((state) => state.status), ['matched', 'matched', 'matched', 'matched', 'matched'])
 })
@@ -62,6 +63,7 @@ test('allows skipped words as assisted when the next strong match appears', () =
     const { session, events } = applySpeechEvent(initial, createSpeechEvent({ text: 'leon y raton' }))
 
     assert.equal(session.isComplete, true)
+    assert.equal(session.acceptedCount, 5)
     assert.equal(session.wordStates[0].status, 'assisted')
     assert.deepEqual(session.wordStates.slice(1).map((state) => state.status), ['matched', 'matched', 'assisted', 'matched'])
     assert.ok(events.some((event) => event.type === 'WORD_ASSISTED'))
@@ -175,6 +177,7 @@ test('reports progress ratio from matched and assisted words', () => {
     const session = applyInterimSpeech(createReadingSession('uno dos tres cuatro'), 'uno tres cuatro')
 
     assert.equal(getProgressRatio(session), 1)
+    assert.equal(session.acceptedCount, 4)
     assert.equal(session.wordStates[1].status, 'assisted')
 })
 

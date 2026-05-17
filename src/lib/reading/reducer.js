@@ -31,6 +31,7 @@ export function createReadingSession(text) {
             source: null,
             heard: '',
         })),
+        acceptedCount: 0,
         currentIndex: 0,
         lastSpeechText: '',
         lastAcceptedWord: '',
@@ -55,6 +56,7 @@ export function applySpeechEvent(session, speechEvent) {
     let currentIndex = session.currentIndex
     let missedStreak = session.missedStreak
     let lastAcceptedWord = session.lastAcceptedWord
+    let acceptedCount = session.acceptedCount ?? countAcceptedWords(session.wordStates)
     const wordStates = session.wordStates.map((state) => (
         state.status === WORD_STATUS.HEARING
             ? {
@@ -136,6 +138,7 @@ export function applySpeechEvent(session, speechEvent) {
 
         for (let index = currentIndex; index < match.index; index += 1) {
             if (wordStates[index].status === WORD_STATUS.PENDING) {
+                acceptedCount += 1
                 wordStates[index] = {
                     ...wordStates[index],
                     status: WORD_STATUS.ASSISTED,
@@ -151,6 +154,10 @@ export function applySpeechEvent(session, speechEvent) {
                     reason: 'lookahead-skip',
                 })
             }
+        }
+
+        if (!isAcceptedStatus(wordStates[match.index]?.status)) {
+            acceptedCount += 1
         }
 
         wordStates[match.index] = {
@@ -185,6 +192,7 @@ export function applySpeechEvent(session, speechEvent) {
     const nextSession = {
         ...session,
         wordStates,
+        acceptedCount,
         currentIndex,
         lastSpeechText: speechEvent.text,
         lastAcceptedWord,
@@ -199,9 +207,7 @@ export function applySpeechEvent(session, speechEvent) {
 export function getProgressRatio(session) {
     if (!session.wordTokens.length) return 1
 
-    const accepted = session.wordStates.filter((state) => (
-        state.status === WORD_STATUS.MATCHED || state.status === WORD_STATUS.ASSISTED
-    )).length
+    const accepted = session.acceptedCount ?? countAcceptedWords(session.wordStates)
 
     return accepted / session.wordTokens.length
 }
@@ -213,6 +219,14 @@ export function getWordStatus(session, index) {
     }
     if (index === session.currentIndex && !session.isComplete) return WORD_STATUS.CURRENT
     return session.wordStates[index]?.status || WORD_STATUS.PENDING
+}
+
+function isAcceptedStatus(status) {
+    return status === WORD_STATUS.MATCHED || status === WORD_STATUS.ASSISTED
+}
+
+function countAcceptedWords(wordStates) {
+    return wordStates.filter((state) => isAcceptedStatus(state.status)).length
 }
 
 export function getRenderableTokens(session) {

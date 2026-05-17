@@ -5,6 +5,7 @@ import {
     createSpeechEvent,
     getProgressRatio,
     getRenderableTokens,
+    READING_EVENT_TYPE,
     SPEECH_EVENT_TYPE,
 } from '@/lib/readingMatcher'
 import { isLikelyCarryoverTranscript } from '@/lib/reading/transcript'
@@ -17,6 +18,7 @@ export function useReadingSession(story, options = {}) {
     const animationFrameRef = useRef(null)
     const carryoverGuardRef = useRef({ expiresAt: 0, text: '' })
     const currentTextRef = useRef('')
+    const sectionCarryoverEventsRef = useRef([])
     const pendingSpeechEventsRef = useRef([])
     const [readingState, setReadingState] = useState(() => ({
         text: '',
@@ -86,7 +88,14 @@ export function useReadingSession(story, options = {}) {
                 : createReadingSession(text)
 
             for (const speechEvent of pendingEvents) {
-                nextSession = applySpeechEvent(nextSession, speechEvent).session
+                if (nextSession.isComplete) {
+                    queueSectionCarryoverEvent(sectionCarryoverEventsRef, speechEvent)
+                    continue
+                }
+
+                const result = applySpeechEvent(nextSession, speechEvent)
+                nextSession = result.session
+                queueSectionCarryoverEvents(sectionCarryoverEventsRef, result.events, speechEvent.type)
             }
 
             return {
@@ -103,6 +112,17 @@ export function useReadingSession(story, options = {}) {
 
         animationFrameRef.current = window.requestAnimationFrame(flushPendingSpeechEvents)
     }, [flushPendingSpeechEvents])
+
+    useEffect(() => {
+        if (!currentText || section === 'COMPLETE' || !sectionCarryoverEventsRef.current.length) return
+
+        const carryoverEvents = sectionCarryoverEventsRef.current
+        sectionCarryoverEventsRef.current = []
+
+        for (const speechEvent of carryoverEvents) {
+            scheduleSpeechEvent(speechEvent)
+        }
+    }, [currentText, scheduleSpeechEvent, section])
 
     const handleSpeech = useCallback((speechText, type = SPEECH_EVENT_TYPE.INTERIM) => {
         const carryoverGuard = carryoverGuardRef.current
@@ -126,4 +146,26 @@ export function useReadingSession(story, options = {}) {
         section,
         session,
     }
+}
+
+function queueSectionCarryoverEvents(carryoverEventsRef, events, type) {
+    const completedEvent = events.find((event) => (
+        event.type === READING_EVENT_TYPE.SECTION_COMPLETED && event.remainingText
+    ))
+
+    if (!completedEvent) return
+
+    queueSectionCarryoverEvent(
+        carryoverEventsRef,
+        createSpeechEvent({ text: completedEvent.remainingText, type })
+    )
+}
+
+function queueSectionCarryoverEvent(carryoverEventsRef, speechEvent) {
+    if (!speechEvent?.text) return
+
+    carryoverEventsRef.current = [
+        ...carryoverEventsRef.current,
+        speechEvent,
+    ]
 }

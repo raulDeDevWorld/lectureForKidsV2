@@ -48,6 +48,43 @@ test('accepts a complete phrase in one recognition event', () => {
     assert.deepEqual(session.wordStates.map((state) => state.status), ['matched', 'matched', 'matched', 'matched', 'matched'])
 })
 
+test('keeps remaining speech when a section completes mid event', () => {
+    const initial = createReadingSession('El Zorro y el Cuervo')
+    const { session, events } = applySpeechEvent(initial, createSpeechEvent({
+        text: 'el zorro y el cuervo una mañana un cuervo',
+        type: SPEECH_EVENT_TYPE.INTERIM,
+    }))
+    const completedEvent = events.at(-1)
+
+    assert.equal(session.isComplete, true)
+    assert.equal(completedEvent.type, 'SECTION_COMPLETED')
+    assert.equal(completedEvent.remainingText, 'una mañana un cuervo')
+    assert.deepEqual(
+        completedEvent.remainingWords.map((token) => token.normalized),
+        ['una', 'manana', 'un', 'cuervo']
+    )
+})
+
+test('can apply remaining speech to the next section without another recognition result', () => {
+    const first = applySpeechEvent(
+        createReadingSession('El Zorro y el Cuervo'),
+        createSpeechEvent({ text: 'el zorro y el cuervo una mañana un cuervo' })
+    )
+    const remainingText = first.events.at(-1).remainingText
+    const second = applySpeechEvent(
+        createReadingSession('Una mañana un cuervo encontró queso'),
+        createSpeechEvent({ text: remainingText })
+    ).session
+
+    assert.equal(second.currentIndex, 4)
+    assert.deepEqual(second.wordStates.slice(0, 4).map((state) => state.status), [
+        'matched',
+        'matched',
+        'matched',
+        'matched',
+    ])
+})
+
 test('does not regress when interim speech repeats previous words', () => {
     let session = createReadingSession('El Leon y el Raton')
 
@@ -89,6 +126,49 @@ test('can align speech after recognition drops short starter words', () => {
         session.wordStates.slice(0, 6).map((state) => state.status),
         ['assisted', 'assisted', 'matched', 'assisted', 'matched', 'matched']
     )
+})
+
+test('does not accept swapped significant words through lookahead', () => {
+    const initial = createReadingSession('El Zorro y el Cuervo')
+    const { session, events } = applySpeechEvent(initial, createSpeechEvent({ text: 'el cuervo y el zorro' }))
+
+    assert.equal(session.currentIndex, 2)
+    assert.equal(session.isComplete, false)
+    assert.equal(session.wordStates[0].status, 'matched')
+    assert.equal(session.wordStates[1].status, 'matched')
+    assert.equal(session.wordStates[2].status, 'pending')
+    assert.equal(session.wordStates[3].status, 'pending')
+    assert.equal(session.wordStates[4].status, 'pending')
+    assert.ok(events.some((event) => event.type === 'WORD_MISSED' && event.heard === 'cuervo'))
+})
+
+test('does not jump to a later significant word without the next word confirming it', () => {
+    const initial = createReadingSession('Una mañana un cuervo encontro queso')
+    const { session, events } = applySpeechEvent(initial, createSpeechEvent({ text: 'cuervo' }))
+
+    assert.equal(session.currentIndex, 0)
+    assert.deepEqual(session.wordStates.slice(0, 4).map((state) => state.status), [
+        'pending',
+        'pending',
+        'pending',
+        'pending',
+    ])
+    assert.deepEqual(events.map((event) => event.type), ['WORD_MISSED'])
+})
+
+test('still aligns after a skipped phrase when following words confirm the position', () => {
+    const initial = createReadingSession('Una mañana un cuervo encontro queso')
+    const { session } = applySpeechEvent(initial, createSpeechEvent({ text: 'cuervo encontro queso' }))
+
+    assert.equal(session.currentIndex, 6)
+    assert.deepEqual(session.wordStates.map((state) => state.status), [
+        'assisted',
+        'assisted',
+        'assisted',
+        'matched',
+        'matched',
+        'matched',
+    ])
 })
 
 test('accepts small recognition differences with confidence metadata', () => {

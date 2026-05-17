@@ -75,11 +75,21 @@ export function applySpeechEvent(session, speechEvent) {
     }
 
     const events = []
+    let lastConsumedHeardIndex = -1
 
-    for (const heardToken of speechEvent.words) {
+    for (let heardIndex = 0; heardIndex < speechEvent.words.length; heardIndex += 1) {
+        const heardToken = speechEvent.words[heardIndex]
         if (currentIndex >= session.wordTokens.length) break
+        lastConsumedHeardIndex = heardIndex
 
-        const match = findBestMatch(session.wordTokens, currentIndex, heardToken.normalized)
+        let match = findBestMatch(session.wordTokens, currentIndex, heardToken.normalized)
+
+        if (
+            match?.index > currentIndex &&
+            !canAcceptLookaheadMatch(session.wordTokens, currentIndex, match.index, speechEvent.words, heardIndex)
+        ) {
+            match = null
+        }
 
         if (!match) {
             const expectedToken = session.wordTokens[currentIndex]
@@ -112,7 +122,10 @@ export function applySpeechEvent(session, speechEvent) {
                 ? findPartialLookaheadMatch(session.wordTokens, currentIndex, heardToken.normalized)
                 : null
 
-            if (partialLookahead) {
+            if (
+                partialLookahead &&
+                canAcceptLookaheadMatch(session.wordTokens, currentIndex, partialLookahead.index, speechEvent.words, heardIndex)
+            ) {
                 wordStates[partialLookahead.index] = {
                     ...wordStates[partialLookahead.index],
                     status: WORD_STATUS.HEARING,
@@ -191,9 +204,13 @@ export function applySpeechEvent(session, speechEvent) {
 
     const isComplete = currentIndex >= session.wordTokens.length
     if (isComplete && !session.isComplete) {
+        const remainingWords = speechEvent.words.slice(lastConsumedHeardIndex + 1)
+
         events.push({
             type: READING_EVENT_TYPE.SECTION_COMPLETED,
             totalWords: session.wordTokens.length,
+            remainingText: remainingWords.map((token) => token.raw).join(' ').trim(),
+            remainingWords,
         })
     }
 
@@ -247,6 +264,52 @@ function getHearingIndexes(session) {
         if (state.status === WORD_STATUS.HEARING) indexes.push(index)
         return indexes
     }, [])
+}
+
+function canAcceptLookaheadMatch(wordTokens, currentIndex, matchIndex, heardWords, heardIndex) {
+    if (hasRemainingSkippedSignificantWord(wordTokens, currentIndex, matchIndex, heardWords, heardIndex)) {
+        return false
+    }
+
+    if (!needsLookaheadConfirmation(wordTokens, currentIndex, matchIndex)) {
+        return true
+    }
+
+    return hasNextWordConfirmation(wordTokens, matchIndex, heardWords[heardIndex + 1])
+}
+
+function needsLookaheadConfirmation(wordTokens, currentIndex, matchIndex) {
+    for (let index = currentIndex; index < matchIndex; index += 1) {
+        if (isSignificantWord(wordTokens[index]?.normalized)) return true
+    }
+
+    return false
+}
+
+function hasNextWordConfirmation(wordTokens, matchIndex, nextHeardToken) {
+    const nextExpected = wordTokens[matchIndex + 1]?.normalized
+    if (!nextExpected || !nextHeardToken?.normalized) return false
+
+    return findBestMatch([{ normalized: nextExpected }], 0, nextHeardToken.normalized, { maxLookahead: 0 }) !== null
+}
+
+function hasRemainingSkippedSignificantWord(wordTokens, currentIndex, matchIndex, heardWords, heardIndex) {
+    const skippedWords = new Set(
+        wordTokens
+            .slice(currentIndex, matchIndex)
+            .map((token) => token.normalized)
+            .filter(isSignificantWord)
+    )
+
+    if (!skippedWords.size) return false
+
+    return heardWords
+        .slice(heardIndex + 1)
+        .some((token) => skippedWords.has(token.normalized))
+}
+
+function isSignificantWord(word) {
+    return String(word || '').length > 3
 }
 
 export function getRenderableTokens(session) {

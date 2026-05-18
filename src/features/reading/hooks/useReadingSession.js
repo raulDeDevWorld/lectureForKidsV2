@@ -12,6 +12,7 @@ import { isLikelyCarryoverTranscript } from '@/lib/reading/transcript'
 import { NEXT_READING_SECTION } from '../constants/sections'
 
 const SECTION_CARRYOVER_GUARD_MS = 1800
+const SECTION_ADVANCE_DELAY_MS = 120
 export function useReadingSession(story, options = {}) {
     const initialSection = options.initialSection || 'title'
     const [section, setSection] = useState(initialSection)
@@ -68,7 +69,7 @@ export function useReadingSession(story, options = {}) {
                 text: currentText,
             }
             setSection(NEXT_READING_SECTION[section])
-        }, 450)
+        }, SECTION_ADVANCE_DELAY_MS)
 
         return () => window.clearTimeout(timeout)
     }, [currentText, section, session.isComplete])

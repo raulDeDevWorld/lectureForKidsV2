@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
+import Confetti from 'react-confetti'
+import { useWindowSize } from 'react-use'
 import { ArrowLeftIcon, DownloadIcon, HeartIcon, SpeakerIcon } from '@/components/icons/Icons'
 import { useDictionaryLookup } from '@/features/dictionary/hooks/useDictionaryLookup'
 import { DictionaryModal } from '@/features/reading/components/DictionaryModal'
@@ -24,15 +26,21 @@ const textSizes = [
 
 const SPEECH_SECTION_PAUSE_MS = 650
 const SPEECH_PARAGRAPH_PAUSE_MS = 320
+const SPEECH_START_AFTER_AMBIENT_MS = 260
+const AMBIENT_AUDIO_SRC = '/ambiente.mp3'
+const AMBIENT_AUDIO_VOLUME = 0.65
 
 export function StoryReader({ isFavorite, onToggleFavorite, story }) {
     const [shouldKeepListening, setShouldKeepListening] = useState(false)
     const [isExportingPdf, setIsExportingPdf] = useState(false)
+    const [showConfetti, setShowConfetti] = useState(false)
     const [textSizeIndex, setTextSizeIndex] = useState(1)
     const speechQueueRef = useRef([])
     const speechTimeoutRef = useRef(null)
     const speechUtteranceRef = useRef(null)
+    const ambientAudioRef = useRef(null)
     const playWord = useSpeechPlayback()
+    const { height: windowHeight, width: windowWidth } = useWindowSize()
     const { closeDefinition, definition, lookupDefinition } = useDictionaryLookup()
     const {
         advanceManually,
@@ -78,14 +86,42 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
 
     useEffect(() => () => {
         clearStorySpeechQueue(speechQueueRef, speechTimeoutRef, speechUtteranceRef)
+        stopAmbientAudio(ambientAudioRef)
     }, [])
+
+    useEffect(() => {
+        if (section === 'COMPLETE') {
+            stopAmbientAudio(ambientAudioRef)
+        }
+    }, [section])
+
+    useEffect(() => {
+        if (section !== 'COMPLETE') return undefined
+
+        const startTimeout = window.setTimeout(() => {
+            setShowConfetti(true)
+        }, 0)
+        const stopTimeout = window.setTimeout(() => {
+            setShowConfetti(false)
+        }, 5500)
+
+        return () => {
+            window.clearTimeout(startTimeout)
+            window.clearTimeout(stopTimeout)
+        }
+    }, [section])
 
     function readCurrentSection() {
         if (!('speechSynthesis' in window)) return
 
         clearStorySpeechQueue(speechQueueRef, speechTimeoutRef, speechUtteranceRef)
+        playAmbientAudio(ambientAudioRef)
         speechQueueRef.current = createStorySpeechSegments(story)
-        speakNextStorySegment(speechQueueRef, speechTimeoutRef, speechUtteranceRef)
+        speechTimeoutRef.current = window.setTimeout(() => {
+            speakNextStorySegment(speechQueueRef, speechTimeoutRef, speechUtteranceRef, () => {
+                stopAmbientAudio(ambientAudioRef)
+            })
+        }, SPEECH_START_AFTER_AMBIENT_MS)
     }
 
     async function exportFullStory() {
@@ -104,16 +140,28 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
 
     const startListening = useCallback(() => {
         setShouldKeepListening(true)
+        playAmbientAudio(ambientAudioRef)
         startSpeechToText()
     }, [startSpeechToText])
 
     const stopListening = useCallback(() => {
         setShouldKeepListening(false)
+        stopAmbientAudio(ambientAudioRef)
         stopSpeechToText()
     }, [stopSpeechToText])
 
     return (
         <div className='relative min-h-screen overflow-hidden bg-[#a6e5fc] pb-40 text-[#1F2A44]'>
+            {showConfetti ? (
+                <Confetti
+                    width={windowWidth}
+                    height={windowHeight}
+                    recycle={false}
+                    numberOfPieces={320}
+                    gravity={0.18}
+                    className='pointer-events-none fixed inset-0 z-[70]'
+                />
+            ) : null}
             <div className='absolute -left-24 top-16 h-56 w-56 rounded-full bg-[#A7D8F5]/35 blur-3xl' />
             <div className='absolute -right-20 top-72 h-56 w-56 rounded-full bg-[#FFC3A1]/35 blur-3xl' />
 
@@ -279,12 +327,13 @@ function createStorySpeechSegments(story) {
     ].filter((segment) => segment?.text)
 }
 
-function speakNextStorySegment(queueRef, timeoutRef, utteranceRef) {
+function speakNextStorySegment(queueRef, timeoutRef, utteranceRef, onComplete) {
     if (!('speechSynthesis' in window)) return
 
     const segment = queueRef.current.shift()
     if (!segment) {
         utteranceRef.current = null
+        onComplete?.()
         return
     }
 
@@ -293,7 +342,7 @@ function speakNextStorySegment(queueRef, timeoutRef, utteranceRef) {
     utterance.rate = 0.9
     utterance.onend = () => {
         timeoutRef.current = window.setTimeout(() => {
-            speakNextStorySegment(queueRef, timeoutRef, utteranceRef)
+            speakNextStorySegment(queueRef, timeoutRef, utteranceRef, onComplete)
         }, segment.pauseAfter)
     }
     utteranceRef.current = utterance
@@ -313,4 +362,34 @@ function clearStorySpeechQueue(queueRef, timeoutRef, utteranceRef) {
     if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel()
     }
+}
+
+function getAmbientAudio(audioRef) {
+    if (!audioRef.current) {
+        const audio = new Audio(AMBIENT_AUDIO_SRC)
+        audio.loop = true
+        audio.volume = AMBIENT_AUDIO_VOLUME
+        audio.muted = false
+        audio.preload = 'auto'
+        audioRef.current = audio
+    }
+
+    audioRef.current.volume = AMBIENT_AUDIO_VOLUME
+    audioRef.current.muted = false
+    return audioRef.current
+}
+
+function playAmbientAudio(audioRef) {
+    const audio = getAmbientAudio(audioRef)
+
+    audio.currentTime = 0
+    audio.play().catch(() => {})
+}
+
+function stopAmbientAudio(audioRef) {
+    const audio = audioRef.current
+    if (!audio) return
+
+    audio.pause()
+    audio.currentTime = 0
 }

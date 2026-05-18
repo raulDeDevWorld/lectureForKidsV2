@@ -1,8 +1,9 @@
-const CACHE_NAME = 'fabulas-3000-v3'
+const CACHE_NAME = 'fabulas-3000-v4'
 const APP_SHELL = [
   '/',
   '/cuentos',
   '/manifest.json',
+  '/ambiente.mp3',
   '/tiger.png',
   '/stories/el-leon-y-el-raton.webp',
   '/stories/la-tortuga-y-la-liebre.svg',

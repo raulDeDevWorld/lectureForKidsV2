@@ -48,7 +48,17 @@ export function StoryText({
                 const raw = tokens ? token.raw : token
                 const tokenKey = `${section}-${index}`
                 const wordIndex = tokens ? token.wordIndex : getWordIndexFromText(displayText, index)
-                const isNarrating = narrationHighlight?.section === section && narrationHighlight?.wordIndex === wordIndex
+                const isNarrating = narrationHighlight?.section === section && (
+                    (
+                        narrationHighlight.mode === 'range' &&
+                        wordIndex >= narrationHighlight.startWordIndex &&
+                        wordIndex < narrationHighlight.endWordIndex
+                    ) ||
+                    (
+                        narrationHighlight.mode === 'word' &&
+                        narrationHighlight.wordIndex === wordIndex
+                    )
+                )
                 const status = isNarrating ? 'narrating' : sectionCompleted ? 'matched' : sectionActive ? token.status : 'pending'
                 const isSelected = selectedTokenKey === tokenKey
 

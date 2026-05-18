@@ -118,9 +118,9 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
         clearStorySpeechQueue(speechQueueRef, speechTimeoutRef, speechUtteranceRef)
         setNarrationHighlight(null)
         playAmbientAudio(ambientAudioRef)
-        speechQueueRef.current = createStorySpeechSegments(story)
+        speechQueueRef.current = createStorySpeechPhrases(story)
         speechTimeoutRef.current = window.setTimeout(() => {
-            speakNextStorySegment(speechQueueRef, speechTimeoutRef, speechUtteranceRef, setNarrationHighlight, () => {
+            speakNextStoryPhrase(speechQueueRef, speechTimeoutRef, speechUtteranceRef, setNarrationHighlight, () => {
                 setNarrationHighlight(null)
                 stopAmbientAudio(ambientAudioRef)
             })
@@ -316,81 +316,104 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
     )
 }
 
-function createStorySpeechSegments(story) {
+function createStorySpeechPhrases(story) {
     const content = Array.isArray(story.content) ? story.content : [story.content]
-    let contentWordOffset = 0
-    const contentSegments = content
-        .filter(Boolean)
-        .map((paragraph) => {
-            const segment = {
-                pauseAfter: SPEECH_PARAGRAPH_PAUSE_MS,
-                section: 'content',
-                text: paragraph,
-                wordOffset: contentWordOffset,
-            }
+    const titlePhrases = createSpeechPhraseUnits(story.title, 'title', 0, SPEECH_SECTION_PAUSE_MS)
+    const contentPhrases = []
+    let contentOffset = 0
 
-            contentWordOffset += countWords(paragraph)
-            return segment
-        })
+    for (const paragraph of content.filter(Boolean)) {
+        const paragraphPhrases = createSpeechPhraseUnits(paragraph, 'content', contentOffset, SPEECH_PARAGRAPH_PAUSE_MS)
+        contentPhrases.push(...paragraphPhrases)
+        contentOffset += paragraphPhrases.reduce((total, phrase) => total + phrase.words.length, 0)
+    }
 
-    return [
-        { pauseAfter: SPEECH_SECTION_PAUSE_MS, section: 'title', text: story.title, wordOffset: 0 },
-        ...contentSegments,
-        story.teaching
-            ? { pauseAfter: 0, section: 'teaching', text: story.teaching, wordOffset: 0 }
-            : null,
-    ].filter((segment) => segment?.text)
+    const teachingPhrases = story.teaching
+        ? createSpeechPhraseUnits(story.teaching, 'teaching', 0, 0)
+        : []
+
+    return [...titlePhrases, ...contentPhrases, ...teachingPhrases]
 }
 
-function speakNextStorySegment(queueRef, timeoutRef, utteranceRef, onBoundary, onComplete) {
+function createSpeechPhraseUnits(text, section, offset, finalPause) {
+    const phrases = String(text || '')
+        .match(/[^.!?;:]+[.!?;:]?|[^.!?;:]+$/g)
+        ?.map((phrase) => phrase.trim())
+        .filter(Boolean) || []
+
+    let wordOffset = offset
+
+    return phrases.map((phrase, index) => {
+        const words = phrase.split(/\s+/).filter(Boolean)
+        const unit = {
+            pauseAfter: index === phrases.length - 1 ? finalPause : getPhrasePause(phrase),
+            section,
+            text: phrase,
+            wordOffset,
+            words,
+        }
+
+        wordOffset += words.length
+        return unit
+    })
+}
+
+function speakNextStoryPhrase(queueRef, timeoutRef, utteranceRef, onBoundary, onComplete) {
     if (!('speechSynthesis' in window)) return
 
-    const segment = queueRef.current.shift()
-    if (!segment) {
+    const unit = queueRef.current.shift()
+    if (!unit) {
         utteranceRef.current = null
         onComplete?.()
         return
     }
 
-    const utterance = new SpeechSynthesisUtterance(segment.text)
-    utterance.lang = 'es-ES'
-    utterance.rate = 0.9
-    utterance.onstart = () => {
-        onBoundary({
-            section: segment.section,
-            wordIndex: segment.wordOffset,
-        })
-    }
-    utterance.onboundary = (event) => {
-        if (typeof event.charIndex !== 'number') return
+    startPhraseHighlight(unit, timeoutRef, onBoundary)
 
-        onBoundary({
-            section: segment.section,
-            wordIndex: segment.wordOffset + getWordIndexAtChar(segment.text, event.charIndex),
-        })
-    }
+    const utterance = new SpeechSynthesisUtterance(unit.text)
+    utterance.lang = 'es-ES'
+    utterance.rate = 0.92
     utterance.onend = () => {
+        window.clearTimeout(timeoutRef.current)
         timeoutRef.current = window.setTimeout(() => {
-            speakNextStorySegment(queueRef, timeoutRef, utteranceRef, onBoundary, onComplete)
-        }, segment.pauseAfter)
+            speakNextStoryPhrase(queueRef, timeoutRef, utteranceRef, onBoundary, onComplete)
+        }, unit.pauseAfter)
     }
     utteranceRef.current = utterance
 
     window.speechSynthesis.speak(utterance)
 }
 
-function countWords(text) {
-    return String(text || '')
-        .split(/\s+/)
-        .filter(Boolean)
-        .length
+function startPhraseHighlight(unit, timeoutRef, onBoundary) {
+    const words = unit.words.length ? unit.words : unit.text.split(/\s+/).filter(Boolean)
+    const stepMs = getPhraseWordStepMs(unit.text, words)
+    let index = 0
+
+    const highlight = () => {
+        onBoundary({
+            mode: 'word',
+            wordIndex: unit.wordOffset + index,
+            section: unit.section,
+        })
+
+        index += 1
+        if (index >= words.length) return
+
+        timeoutRef.current = window.setTimeout(highlight, stepMs)
+    }
+
+    highlight()
 }
 
-function getWordIndexAtChar(text, charIndex) {
-    const beforeBoundary = String(text || '').slice(0, Math.max(0, charIndex))
-    const wordsBeforeBoundary = beforeBoundary.trim().split(/\s+/).filter(Boolean)
+function getPhraseWordStepMs(text, words) {
+    const estimatedDuration = Math.max(900, String(text || '').length * 58)
+    return Math.max(145, Math.min(420, estimatedDuration / Math.max(1, words.length)))
+}
 
-    return Math.max(0, wordsBeforeBoundary.length)
+function getPhrasePause(phrase) {
+    if (/[.!?]$/.test(phrase)) return 300
+    if (/[;:]$/.test(phrase)) return 220
+    return 160
 }
 
 function clearStorySpeechQueue(queueRef, timeoutRef, utteranceRef) {

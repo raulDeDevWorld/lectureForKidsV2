@@ -2,8 +2,10 @@
 
 import { useMemo, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { DownloadIcon } from '@/components/icons/Icons'
 import { CategoryChip } from '@/components/ui/CategoryChip'
 import { SearchInput } from '@/components/ui/SearchInput'
+import { exportAllStoriesPdf } from '@/lib/exportStoryPdf'
 import { StoryCard } from './StoryCard'
 import { useFavorites } from './useFavorites'
 
@@ -27,6 +29,16 @@ export function StoriesListClient({ categories, stories }) {
     return (
         <div className='space-y-5'>
             <SearchInput value={query} onChange={setQuery} />
+
+            <button
+                type='button'
+                aria-label='Descargar todas las fabulas en PDF'
+                onClick={() => exportAllStoriesPdf(stories)}
+                className='inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-[#172554] px-4 text-sm font-black text-white shadow-[0_5px_0_rgba(23,37,84,0.16)] transition active:translate-y-0.5 active:shadow-none'
+            >
+                <DownloadIcon className='h-5 w-5 shrink-0' />
+                Descargar todas en PDF
+            </button>
 
             <div className='flex gap-2 overflow-x-auto pb-1'>
                 {['Todos', ...categories].map((category) => (

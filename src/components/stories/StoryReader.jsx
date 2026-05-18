@@ -11,7 +11,7 @@ import { useBrowserSpeechRecognition } from '@/features/reading/hooks/useBrowser
 import { useReadingSession } from '@/features/reading/hooks/useReadingSession'
 import { useSpeechReadingBridge } from '@/features/reading/hooks/useSpeechReadingBridge'
 import { useSpeechPlayback } from '@/features/reading/hooks/useSpeechPlayback'
-import { exportFullStoryPdf, exportStorySectionPdf } from '@/lib/exportStoryPdf'
+import { exportFullStoryPdf } from '@/lib/exportStoryPdf'
 import { SPEECH_EVENT_TYPE } from '@/lib/readingMatcher'
 import { FavoriteButton } from './FavoriteButton'
 import { StoryImage } from './StoryImage'
@@ -76,10 +76,6 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
         utterance.lang = 'es-ES'
         utterance.rate = 0.92
         window.speechSynthesis.speak(utterance)
-    }
-
-    function exportCurrentSection() {
-        exportStorySectionPdf(story, section)
     }
 
     function exportFullStory() {
@@ -187,24 +183,15 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
                                         : 'El reconocimiento de voz no esta disponible.'}
                         </p>
 
-                        <div className='mt-3 grid grid-cols-2 gap-2'>
+                        <div className='mt-3'>
                             <button
                                 type='button'
-                                aria-label='Exportar seccion actual en PDF'
-                                onClick={exportCurrentSection}
-                                className='inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-[#E0F2FE] px-3 text-xs font-black text-[#075985] shadow-[0_4px_0_rgba(2,132,199,0.12)] transition active:translate-y-0.5 active:shadow-none sm:text-sm'
-                            >
-                                <DownloadIcon className='h-4 w-4 shrink-0' />
-                                PDF seccion
-                            </button>
-                            <button
-                                type='button'
-                                aria-label='Exportar historia completa en PDF'
+                                aria-label='Descargar fabula completa en PDF'
                                 onClick={exportFullStory}
-                                className='inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-[#FFF7CC] px-3 text-xs font-black text-[#8A5A00] shadow-[0_4px_0_rgba(245,158,11,0.14)] transition active:translate-y-0.5 active:shadow-none sm:text-sm'
+                                className='inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-[#FFF7CC] px-3 text-xs font-black text-[#8A5A00] shadow-[0_4px_0_rgba(245,158,11,0.14)] transition active:translate-y-0.5 active:shadow-none sm:text-sm'
                             >
                                 <DownloadIcon className='h-4 w-4 shrink-0' />
-                                PDF todo
+                                Descargar fabula PDF
                             </button>
                         </div>
                     </div>

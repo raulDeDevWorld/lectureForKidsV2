@@ -20,11 +20,21 @@ export function exportFullStoryPdf(story) {
     openPrintablePdf({
         title: story.title,
         subtitle: story.category,
-        sections: [
-            { heading: SECTION_LABELS.title, text: story.title },
-            { heading: SECTION_LABELS.content, text: getStorySectionText(story, 'content') },
-            { heading: SECTION_LABELS.teaching, text: story.teaching },
-        ],
+        sections: getPrintableStorySections(story),
+    })
+}
+
+export function exportAllStoriesPdf(stories) {
+    openPrintablePdf({
+        title: 'Todas las fabulas',
+        subtitle: `${stories.length} historias`,
+        sections: stories.flatMap((story, index) => [
+            {
+                heading: `${index + 1}. ${story.title}`,
+                text: [getStorySectionText(story, 'content'), `Moraleja: ${story.teaching}`].filter(Boolean).join('\n\n'),
+                pageBreakBefore: index > 0,
+            },
+        ]),
     })
 }
 
@@ -32,6 +42,14 @@ function getStorySectionText(story, section) {
     const value = story?.[section]
     if (Array.isArray(value)) return value.join('\n\n')
     return String(value || '')
+}
+
+function getPrintableStorySections(story) {
+    return [
+        { heading: SECTION_LABELS.title, text: story.title },
+        { heading: SECTION_LABELS.content, text: getStorySectionText(story, 'content') },
+        { heading: SECTION_LABELS.teaching, text: story.teaching },
+    ]
 }
 
 function openPrintablePdf({ title, subtitle, sections }) {
@@ -59,7 +77,7 @@ function createPrintableHtml({ title, subtitle, sections }) {
     const sectionHtml = sections
         .filter((section) => section.text)
         .map((section) => `
-            <section>
+            <section class="${section.pageBreakBefore ? 'page-break' : ''}">
                 <h2>${escapeHtml(section.heading)}</h2>
                 ${formatParagraphs(section.text)}
             </section>
@@ -102,6 +120,10 @@ function createPrintableHtml({ title, subtitle, sections }) {
             color: #075985;
             font-size: 18px;
             margin: 24px 0 10px;
+        }
+        .page-break {
+            break-before: page;
+            page-break-before: always;
         }
         p {
             font-size: 15px;

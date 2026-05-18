@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { getTranscriptDelta, normalizeTranscript } from '@/lib/reading/transcript'
 
 const UNSUPPORTED_ERROR = 'El reconocimiento de voz no esta disponible en este navegador.'
-const RESTART_RECOGNITION_DELAY_MS = 100
+const RESTART_RECOGNITION_DELAY_MS = 80
 
 function hasSpeechRecognitionSupport() {
     if (typeof window === 'undefined') return true

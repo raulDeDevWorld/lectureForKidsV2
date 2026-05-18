@@ -40,7 +40,7 @@ export function SpeechToText({
         <div className='fixed inset-x-0 bottom-0 z-50 flex justify-center md:px-3 pt-3'>
             <div className='pointer-events-auto flex w-full max-w-3xl items-center  rounded-t-[30px] bg-[#f3f3f3] p-3 shadow-[0_12px_0_rgba(23,37,84,0.10),0_22px_60px_rgba(23,37,84,0.22)]'>
                 <div className='w-full'>
-                    <div className='mb-2 line-clamp-2 min-h-[42px] rounded-2xl bg-[#fff7df] px-4 py-2 text-sm font-black leading-6 text-[#172554] sm:text-base'>
+                    {/* <div className='mb-2 line-clamp-2 min-h-[42px] rounded-2xl bg-[#fff7df] px-4 py-2 text-sm font-black leading-6 text-[#172554] sm:text-base'>
                         {hasTranscriptParts ? (
                             <>
                                 {stableWords.map((word, index) => (
@@ -57,7 +57,7 @@ export function SpeechToText({
                         ) : (
                             value || helperText
                         )}
-                    </div>
+                    </div> */}
 
                     <div className='mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2'>
                         <button

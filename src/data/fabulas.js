@@ -3,7 +3,7 @@ import { getReadingTime } from '@/lib/readingTime'
 import { slugify } from '@/lib/slugify'
 
 const fallbackImages = [
-    '/stories/el-leon-y-el-raton.svg',
+    '/stories/el-leon-y-el-raton.webp',
     '/stories/la-tortuga-y-la-liebre.svg',
     '/stories/el-pajarito-curioso.svg',
     '/stories/suenos-de-estrellas.svg',
@@ -13,7 +13,7 @@ const fallbackImages = [
 const colorOrder = ['blue', 'mint', 'peach', 'lavender', 'yellow']
 
 const storyImageBySlug = {
-    'el-leon-y-el-raton': '/stories/el-leon-y-el-raton.svg',
+    'el-leon-y-el-raton': '/stories/el-leon-y-el-raton.webp',
     'la-tortuga-y-la-liebre': '/stories/la-tortuga-y-la-liebre.svg',
 }
 

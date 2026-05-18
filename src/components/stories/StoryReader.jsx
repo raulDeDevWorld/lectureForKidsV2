@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { ArrowLeftIcon, DownloadIcon, HeartIcon, SpeakerIcon } from '@/components/icons/Icons'
 import { useDictionaryLookup } from '@/features/dictionary/hooks/useDictionaryLookup'
@@ -22,9 +22,15 @@ const textSizes = [
     'text-2xl leading-[3rem]',
 ]
 
+const SPEECH_SECTION_PAUSE_MS = 650
+const SPEECH_PARAGRAPH_PAUSE_MS = 320
+
 export function StoryReader({ isFavorite, onToggleFavorite, story }) {
     const [shouldKeepListening, setShouldKeepListening] = useState(false)
     const [textSizeIndex, setTextSizeIndex] = useState(1)
+    const speechQueueRef = useRef([])
+    const speechTimeoutRef = useRef(null)
+    const speechUtteranceRef = useRef(null)
     const playWord = useSpeechPlayback()
     const { closeDefinition, definition, lookupDefinition } = useDictionaryLookup()
     const {
@@ -69,14 +75,16 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
         setTextSizeIndex((current) => (current + 1) % textSizes.length)
     }
 
+    useEffect(() => () => {
+        clearStorySpeechQueue(speechQueueRef, speechTimeoutRef, speechUtteranceRef)
+    }, [])
+
     function readCurrentSection() {
         if (!('speechSynthesis' in window)) return
 
-        window.speechSynthesis.cancel()
-        const utterance = new SpeechSynthesisUtterance(currentText || story.title)
-        utterance.lang = 'es-ES'
-        utterance.rate = 0.92
-        window.speechSynthesis.speak(utterance)
+        clearStorySpeechQueue(speechQueueRef, speechTimeoutRef, speechUtteranceRef)
+        speechQueueRef.current = createStorySpeechSegments(story)
+        speakNextStorySegment(speechQueueRef, speechTimeoutRef, speechUtteranceRef)
     }
 
     function exportFullStory() {
@@ -243,4 +251,57 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
             <DictionaryModal definition={definition} onClose={closeDefinition} />
         </div>
     )
+}
+
+function createStorySpeechSegments(story) {
+    const content = Array.isArray(story.content) ? story.content : [story.content]
+
+    return [
+        { pauseAfter: SPEECH_SECTION_PAUSE_MS, text: story.title },
+        ...content
+            .filter(Boolean)
+            .map((paragraph) => ({
+                pauseAfter: SPEECH_PARAGRAPH_PAUSE_MS,
+                text: paragraph,
+            })),
+        story.teaching
+            ? { pauseAfter: 0, text: `Moraleja. ${story.teaching}` }
+            : null,
+    ].filter((segment) => segment?.text)
+}
+
+function speakNextStorySegment(queueRef, timeoutRef, utteranceRef) {
+    if (!('speechSynthesis' in window)) return
+
+    const segment = queueRef.current.shift()
+    if (!segment) {
+        utteranceRef.current = null
+        return
+    }
+
+    const utterance = new SpeechSynthesisUtterance(segment.text)
+    utterance.lang = 'es-ES'
+    utterance.rate = 0.9
+    utterance.onend = () => {
+        timeoutRef.current = window.setTimeout(() => {
+            speakNextStorySegment(queueRef, timeoutRef, utteranceRef)
+        }, segment.pauseAfter)
+    }
+    utteranceRef.current = utterance
+
+    window.speechSynthesis.speak(utterance)
+}
+
+function clearStorySpeechQueue(queueRef, timeoutRef, utteranceRef) {
+    queueRef.current = []
+    utteranceRef.current = null
+
+    if (timeoutRef.current) {
+        window.clearTimeout(timeoutRef.current)
+        timeoutRef.current = null
+    }
+
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel()
+    }
 }

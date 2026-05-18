@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fabulas-3000-v2'
+const CACHE_NAME = 'fabulas-3000-v3'
 const APP_SHELL = [
   '/',
   '/cuentos',

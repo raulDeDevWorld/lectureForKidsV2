@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import { DownloadIcon } from '@/components/icons/Icons'
 import { CategoryChip } from '@/components/ui/CategoryChip'
 import { SearchInput } from '@/components/ui/SearchInput'
-import { exportAllStoriesPdf } from '@/lib/exportStoryPdf'
+import { exportAllStoriesPdf } from '@/lib/exportStoryPdf.jsx'
 import { StoryCard } from './StoryCard'
 import { useFavorites } from './useFavorites'
 

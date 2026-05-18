@@ -11,7 +11,7 @@ import { useBrowserSpeechRecognition } from '@/features/reading/hooks/useBrowser
 import { useReadingSession } from '@/features/reading/hooks/useReadingSession'
 import { useSpeechReadingBridge } from '@/features/reading/hooks/useSpeechReadingBridge'
 import { useSpeechPlayback } from '@/features/reading/hooks/useSpeechPlayback'
-import { exportFullStoryPdf } from '@/lib/exportStoryPdf'
+import { exportFullStoryPdf } from '@/lib/exportStoryPdf.jsx'
 import { SPEECH_EVENT_TYPE } from '@/lib/readingMatcher'
 import { FavoriteButton } from './FavoriteButton'
 import { StoryImage } from './StoryImage'
@@ -27,6 +27,7 @@ const SPEECH_PARAGRAPH_PAUSE_MS = 320
 
 export function StoryReader({ isFavorite, onToggleFavorite, story }) {
     const [shouldKeepListening, setShouldKeepListening] = useState(false)
+    const [isExportingPdf, setIsExportingPdf] = useState(false)
     const [textSizeIndex, setTextSizeIndex] = useState(1)
     const speechQueueRef = useRef([])
     const speechTimeoutRef = useRef(null)
@@ -87,8 +88,15 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
         speakNextStorySegment(speechQueueRef, speechTimeoutRef, speechUtteranceRef)
     }
 
-    function exportFullStory() {
-        exportFullStoryPdf(story)
+    async function exportFullStory() {
+        if (isExportingPdf) return
+
+        setIsExportingPdf(true)
+        try {
+            await exportFullStoryPdf(story)
+        } finally {
+            setIsExportingPdf(false)
+        }
     }
 
     const canRecord = !error
@@ -197,10 +205,11 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
                                 type='button'
                                 aria-label='Descargar fabula completa en PDF'
                                 onClick={exportFullStory}
+                                disabled={isExportingPdf}
                                 className='inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-[#FFF7CC] px-3 text-xs font-black text-[#8A5A00] shadow-[0_4px_0_rgba(245,158,11,0.14)] transition active:translate-y-0.5 active:shadow-none sm:text-sm'
                             >
                                 <DownloadIcon className='h-4 w-4 shrink-0' />
-                                Descargar fabula PDF
+                                {isExportingPdf ? 'Preparando PDF...' : 'Descargar fabula PDF'}
                             </button>
                         </div>
                     </div>

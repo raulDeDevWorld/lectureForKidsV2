@@ -1,5 +1,6 @@
 import './globals.css'
 import { Quicksand } from 'next/font/google'
+import { PwaRuntime } from '@/features/pwa/components/PwaRuntime'
 
 const quicksand = Quicksand({
   subsets: ['latin'],
@@ -24,6 +25,7 @@ export default function RootLayout({ children }) {
         <title>Fabulas 3000</title>
       </head>
       <body className={quicksand.className}>
+        <PwaRuntime />
         <main id="home" className="min-h-screen">
           {children}
         </main>

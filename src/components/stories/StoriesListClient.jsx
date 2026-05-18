@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { DownloadIcon } from '@/components/icons/Icons'
 import { CategoryChip } from '@/components/ui/CategoryChip'
@@ -10,6 +10,7 @@ import { StoryCard } from './StoryCard'
 import { useFavorites } from './useFavorites'
 
 const colorOrder = ['blue', 'mint', 'peach', 'lavender', 'yellow']
+const OFFLINE_STORIES_KEY = 'fabulas-3000:offline-stories'
 
 export function StoriesListClient({ categories, stories }) {
     const searchParams = useSearchParams()
@@ -17,6 +18,14 @@ export function StoriesListClient({ categories, stories }) {
     const [query, setQuery] = useState('')
     const [activeCategory, setActiveCategory] = useState(() => searchParams.get('categoria') || 'Todos')
     const { favorites, isFavorite, toggleFavorite } = useFavorites()
+
+    useEffect(() => {
+        try {
+            window.localStorage.setItem(OFFLINE_STORIES_KEY, JSON.stringify(stories))
+        } catch {
+            // Offline catalog caching is best effort; the bundled data remains available.
+        }
+    }, [stories])
 
     const visibleStories = useMemo(() => {
         return stories

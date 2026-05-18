@@ -10,6 +10,7 @@ export function SpeechToText({
     missedStreak,
     error,
     isRecording,
+    onManualAdvance,
     startSpeechToText,
     stopSpeechToText,
 }) {
@@ -26,6 +27,7 @@ export function SpeechToText({
     const canRecord = !error
     const buttonBackground = isRecording ? '#ff6b6b' : '#172554'
     const hasTranscriptParts = stableWords.length > 0 || unstableText
+    const canAdvanceManually = Boolean(currentWord && onManualAdvance)
 
     function handleMicrophoneClick() {
         if (!canRecord) return
@@ -57,35 +59,46 @@ export function SpeechToText({
                         )}
                     </div>
 
-                    <button
-                        type='button'
-                        className='mt-2 flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-black shadow-[0_5px_0_rgba(23,37,84,0.16)] transition active:translate-y-0.5 active:shadow-none'
-                        style={{
-                            backgroundColor: buttonBackground,
-                            border: '3px solid #FFD166',
-                            color: '#FFFFFF',
-                            cursor: canRecord ? 'pointer' : 'not-allowed',
-                            opacity: canRecord ? 1 : 0.55,
-                        }}
-                        onClick={handleMicrophoneClick}
-                        disabled={!canRecord}
-                    >
-                        <span className={isRecording ? style.spinnerContainer : ''} style={{ height: 28, margin: 0, width: 28 }}>
-                            <span className={isRecording ? style.spinner : ''} style={{ display: 'inline-flex', height: 28, width: 28 }}>
-                                <svg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 24 24' aria-hidden='true'>
-                                    <path
-                                        fill='none'
-                                        stroke='white'
-                                        strokeLinecap='round'
-                                        strokeLinejoin='round'
-                                        strokeWidth='2.2'
-                                        d='M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z'
-                                    />
-                                </svg>
+                    <div className='mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2'>
+                        <button
+                            type='button'
+                            className='flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-black shadow-[0_5px_0_rgba(23,37,84,0.16)] transition active:translate-y-0.5 active:shadow-none'
+                            style={{
+                                backgroundColor: buttonBackground,
+                                border: '3px solid #FFD166',
+                                color: '#FFFFFF',
+                                cursor: canRecord ? 'pointer' : 'not-allowed',
+                                opacity: canRecord ? 1 : 0.55,
+                            }}
+                            onClick={handleMicrophoneClick}
+                            disabled={!canRecord}
+                        >
+                            <span className={isRecording ? style.spinnerContainer : ''} style={{ height: 28, margin: 0, width: 28 }}>
+                                <span className={isRecording ? style.spinner : ''} style={{ display: 'inline-flex', height: 28, width: 28 }}>
+                                    <svg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 24 24' aria-hidden='true'>
+                                        <path
+                                            fill='none'
+                                            stroke='white'
+                                            strokeLinecap='round'
+                                            strokeLinejoin='round'
+                                            strokeWidth='2.2'
+                                            d='M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z'
+                                        />
+                                    </svg>
+                                </span>
                             </span>
-                        </span>
-                        {error ? error : (isRecording ? 'Detener microfono' : 'Activar microfono')}
-                    </button>
+                            {error ? 'Sin voz' : (isRecording ? 'Detener microfono' : 'Activar microfono')}
+                        </button>
+
+                        <button
+                            type='button'
+                            className='flex w-full items-center justify-center rounded-2xl border-[3px] border-[#172554] bg-white px-4 py-3 text-sm font-black text-[#172554] shadow-[0_5px_0_rgba(23,37,84,0.12)] transition active:translate-y-0.5 active:shadow-none disabled:cursor-not-allowed disabled:opacity-50'
+                            onClick={onManualAdvance}
+                            disabled={!canAdvanceManually}
+                        >
+                            Avanzar manual
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

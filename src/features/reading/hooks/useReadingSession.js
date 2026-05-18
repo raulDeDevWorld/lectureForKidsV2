@@ -8,6 +8,7 @@ import {
     READING_EVENT_TYPE,
     SPEECH_EVENT_TYPE,
 } from '@/lib/readingMatcher'
+import { readStoryProgress, saveStoryProgress } from '@/lib/readingProgressStorage'
 import { isLikelyCarryoverTranscript } from '@/lib/reading/transcript'
 import { NEXT_READING_SECTION } from '../constants/sections'
 
@@ -15,7 +16,10 @@ const SECTION_CARRYOVER_GUARD_MS = 1800
 const SECTION_ADVANCE_DELAY_MS = 60
 export function useReadingSession(story, options = {}) {
     const initialSection = options.initialSection || 'title'
-    const [section, setSection] = useState(initialSection)
+    const [section, setSection] = useState(() => {
+        const storedSection = readStoryProgress(story?.id)?.section
+        return storedSection && storedSection !== 'COMPLETE' ? storedSection : initialSection
+    })
     const animationFrameRef = useRef(null)
     const carryoverGuardRef = useRef({ expiresAt: 0, text: '' })
     const currentTextRef = useRef('')
@@ -53,6 +57,18 @@ export function useReadingSession(story, options = {}) {
             animationFrameRef.current = null
         }
     }, [currentText])
+
+    useEffect(() => {
+        if (!story?.id) return
+
+        saveStoryProgress(story.id, {
+            section,
+            progressPercent,
+            currentIndex: session.currentIndex,
+            totalWords: session.wordTokens.length,
+            completed: section === 'COMPLETE',
+        })
+    }, [progressPercent, section, session.currentIndex, session.wordTokens.length, story?.id])
 
     useEffect(() => () => {
         if (animationFrameRef.current) {
@@ -138,7 +154,18 @@ export function useReadingSession(story, options = {}) {
         scheduleSpeechEvent(createSpeechEvent({ text: speechText, type }))
     }, [scheduleSpeechEvent])
 
+    const advanceManually = useCallback(() => {
+        const currentToken = session.wordTokens[session.currentIndex]
+        if (!currentToken) return
+
+        scheduleSpeechEvent(createSpeechEvent({
+            text: currentToken.raw,
+            type: SPEECH_EVENT_TYPE.FINAL,
+        }))
+    }, [scheduleSpeechEvent, session.currentIndex, session.wordTokens])
+
     return {
+        advanceManually,
         currentText,
         currentWord,
         handleSpeech,

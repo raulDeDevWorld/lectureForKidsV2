@@ -33,6 +33,7 @@ const AMBIENT_AUDIO_VOLUME = 0.65
 export function StoryReader({ isFavorite, onToggleFavorite, story }) {
     const [shouldKeepListening, setShouldKeepListening] = useState(false)
     const [isExportingPdf, setIsExportingPdf] = useState(false)
+    const [narrationHighlight, setNarrationHighlight] = useState(null)
     const [showConfetti, setShowConfetti] = useState(false)
     const [textSizeIndex, setTextSizeIndex] = useState(1)
     const speechQueueRef = useRef([])
@@ -115,10 +116,12 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
         if (!('speechSynthesis' in window)) return
 
         clearStorySpeechQueue(speechQueueRef, speechTimeoutRef, speechUtteranceRef)
+        setNarrationHighlight(null)
         playAmbientAudio(ambientAudioRef)
         speechQueueRef.current = createStorySpeechSegments(story)
         speechTimeoutRef.current = window.setTimeout(() => {
-            speakNextStorySegment(speechQueueRef, speechTimeoutRef, speechUtteranceRef, () => {
+            speakNextStorySegment(speechQueueRef, speechTimeoutRef, speechUtteranceRef, setNarrationHighlight, () => {
+                setNarrationHighlight(null)
                 stopAmbientAudio(ambientAudioRef)
             })
         }, SPEECH_START_AFTER_AMBIENT_MS)
@@ -214,6 +217,7 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
                             <StoryText
                                 activeSection={section}
                                 className='mt-1 text-3xl font-black leading-tight text-[#1F2A44] sm:text-4xl'
+                                narrationHighlight={narrationHighlight}
                                 onLookupWord={lookupDefinition}
                                 onPlayWord={playWord}
                                 renderableTokens={renderableTokens}
@@ -266,6 +270,7 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
                         <StoryText
                             activeSection={section}
                             className={`font-bold text-[#374151] ${textSizes[textSizeIndex]}`}
+                            narrationHighlight={narrationHighlight}
                             onLookupWord={lookupDefinition}
                             onPlayWord={playWord}
                             renderableTokens={renderableTokens}
@@ -282,6 +287,7 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
                         <StoryText
                             activeSection={section}
                             className='mt-2 text-lg font-black leading-8 text-[#1F2A44]'
+                            narrationHighlight={narrationHighlight}
                             onLookupWord={lookupDefinition}
                             onPlayWord={playWord}
                             renderableTokens={renderableTokens}
@@ -312,22 +318,31 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
 
 function createStorySpeechSegments(story) {
     const content = Array.isArray(story.content) ? story.content : [story.content]
+    let contentWordOffset = 0
+    const contentSegments = content
+        .filter(Boolean)
+        .map((paragraph) => {
+            const segment = {
+                pauseAfter: SPEECH_PARAGRAPH_PAUSE_MS,
+                section: 'content',
+                text: paragraph,
+                wordOffset: contentWordOffset,
+            }
+
+            contentWordOffset += countWords(paragraph)
+            return segment
+        })
 
     return [
-        { pauseAfter: SPEECH_SECTION_PAUSE_MS, text: story.title },
-        ...content
-            .filter(Boolean)
-            .map((paragraph) => ({
-                pauseAfter: SPEECH_PARAGRAPH_PAUSE_MS,
-                text: paragraph,
-            })),
+        { pauseAfter: SPEECH_SECTION_PAUSE_MS, section: 'title', text: story.title, wordOffset: 0 },
+        ...contentSegments,
         story.teaching
-            ? { pauseAfter: 0, text: `Moraleja. ${story.teaching}` }
+            ? { pauseAfter: 0, section: 'teaching', text: story.teaching, wordOffset: 0 }
             : null,
     ].filter((segment) => segment?.text)
 }
 
-function speakNextStorySegment(queueRef, timeoutRef, utteranceRef, onComplete) {
+function speakNextStorySegment(queueRef, timeoutRef, utteranceRef, onBoundary, onComplete) {
     if (!('speechSynthesis' in window)) return
 
     const segment = queueRef.current.shift()
@@ -340,14 +355,42 @@ function speakNextStorySegment(queueRef, timeoutRef, utteranceRef, onComplete) {
     const utterance = new SpeechSynthesisUtterance(segment.text)
     utterance.lang = 'es-ES'
     utterance.rate = 0.9
+    utterance.onstart = () => {
+        onBoundary({
+            section: segment.section,
+            wordIndex: segment.wordOffset,
+        })
+    }
+    utterance.onboundary = (event) => {
+        if (typeof event.charIndex !== 'number') return
+
+        onBoundary({
+            section: segment.section,
+            wordIndex: segment.wordOffset + getWordIndexAtChar(segment.text, event.charIndex),
+        })
+    }
     utterance.onend = () => {
         timeoutRef.current = window.setTimeout(() => {
-            speakNextStorySegment(queueRef, timeoutRef, utteranceRef, onComplete)
+            speakNextStorySegment(queueRef, timeoutRef, utteranceRef, onBoundary, onComplete)
         }, segment.pauseAfter)
     }
     utteranceRef.current = utterance
 
     window.speechSynthesis.speak(utterance)
+}
+
+function countWords(text) {
+    return String(text || '')
+        .split(/\s+/)
+        .filter(Boolean)
+        .length
+}
+
+function getWordIndexAtChar(text, charIndex) {
+    const beforeBoundary = String(text || '').slice(0, Math.max(0, charIndex))
+    const wordsBeforeBoundary = beforeBoundary.trim().split(/\s+/).filter(Boolean)
+
+    return Math.max(0, wordsBeforeBoundary.length)
 }
 
 function clearStorySpeechQueue(queueRef, timeoutRef, utteranceRef) {

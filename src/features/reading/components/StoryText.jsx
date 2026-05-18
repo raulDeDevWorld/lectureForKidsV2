@@ -4,6 +4,7 @@ import { normalizeWord } from '@/lib/readingMatcher'
 export function StoryText({
     activeSection,
     className = '',
+    narrationHighlight,
     onLookupWord,
     onPlayWord,
     renderableTokens,
@@ -46,7 +47,9 @@ export function StoryText({
 
                 const raw = tokens ? token.raw : token
                 const tokenKey = `${section}-${index}`
-                const status = sectionCompleted ? 'matched' : sectionActive ? token.status : 'pending'
+                const wordIndex = tokens ? token.wordIndex : getWordIndexFromText(displayText, index)
+                const isNarrating = narrationHighlight?.section === section && narrationHighlight?.wordIndex === wordIndex
+                const status = isNarrating ? 'narrating' : sectionCompleted ? 'matched' : sectionActive ? token.status : 'pending'
                 const isSelected = selectedTokenKey === tokenKey
 
                 return (
@@ -77,6 +80,7 @@ const WordToken = memo(function WordToken({
     const isHearing = status === 'hearing'
     const classNames = [
         'cursor-pointer rounded-xl px-1.5 py-0.5 transition-all duration-200 hover:bg-[#fff1c7]',
+        status === 'narrating' ? 'bg-[#BFE8D4] text-[#064E3B] underline decoration-[#10B981] decoration-4 underline-offset-4 ring-2 ring-[#10B981] shadow-[0_4px_0_rgba(16,185,129,0.18)]' : '',
         status === 'matched' ? 'bg-[#FFE08A] text-[#7C4A00] underline decoration-[#F59E0B] decoration-4 underline-offset-4 ring-1 ring-[#F59E0B]' : '',
         status === 'assisted' ? 'bg-[#FFF7CC] text-[#8a5a00] underline decoration-[#FACC15] decoration-dashed decoration-4 underline-offset-4 ring-1 ring-[#FACC15]' : '',
         isHearing ? 'bg-[#DFF2FD] text-[#075985] underline decoration-[#38BDF8] decoration-4 underline-offset-4 shadow-[0_4px_0_rgba(2,132,199,0.14)] ring-2 ring-[#38BDF8]' : '',
@@ -107,9 +111,23 @@ const WordToken = memo(function WordToken({
 })
 
 function getStatusLabel(status) {
+    if (status === 'narrating') return 'Leyendo ahora.'
     if (status === 'matched') return 'Leida correctamente.'
     if (status === 'assisted') return 'Avanzada con ayuda.'
     if (status === 'hearing') return 'Detectando lectura.'
     if (status === 'current') return 'Palabra actual.'
     return 'Pendiente.'
+}
+
+function getWordIndexFromText(text, tokenIndex) {
+    const tokens = String(text || '').split(/(\s+)/)
+    let wordIndex = -1
+
+    for (let index = 0; index <= tokenIndex; index += 1) {
+        if (!/^\s+$/.test(tokens[index]) && normalizeWord(tokens[index])) {
+            wordIndex += 1
+        }
+    }
+
+    return wordIndex
 }

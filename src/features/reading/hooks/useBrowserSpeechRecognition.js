@@ -4,7 +4,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { getTranscriptDelta, normalizeTranscript } from '@/lib/reading/transcript'
 
 const UNSUPPORTED_ERROR = 'El reconocimiento de voz no esta disponible en este navegador.'
-const RESTART_RECOGNITION_DELAY_MS = 80
+const RESTART_RECOGNITION_DELAY_MS = 350
+const BLOCKING_RECOGNITION_ERRORS = new Set(['not-allowed', 'service-not-allowed'])
 
 function hasSpeechRecognitionSupport() {
     if (typeof window === 'undefined') return true
@@ -18,6 +19,7 @@ export function useBrowserSpeechRecognition({
     resetKey,
 } = {}) {
     const recognitionRef = useRef(null)
+    const restartTimeoutRef = useRef(null)
     const shouldListenRef = useRef(false)
     const lastInterimTranscriptRef = useRef('')
     const onFinalResultRef = useRef(onFinalResult)
@@ -103,13 +105,13 @@ export function useBrowserSpeechRecognition({
         }
 
         recognition.onerror = (event) => {
-            if (event.error === 'no-speech') return
+            if (event.error === 'no-speech' || event.error === 'aborted') return
 
-            if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+            if (BLOCKING_RECOGNITION_ERRORS.has(event.error)) {
                 shouldListenRef.current = false
                 setError('Permiso de microfono denegado.')
             } else {
-                setError(`Error de reconocimiento: ${event.error}`)
+                setError('')
             }
         }
 
@@ -118,7 +120,10 @@ export function useBrowserSpeechRecognition({
 
             if (!shouldListenRef.current) return
 
-            window.setTimeout(() => {
+            window.clearTimeout(restartTimeoutRef.current)
+            restartTimeoutRef.current = window.setTimeout(() => {
+                if (!shouldListenRef.current) return
+
                 try {
                     recognition.start()
                 } catch {
@@ -131,6 +136,7 @@ export function useBrowserSpeechRecognition({
 
         return () => {
             shouldListenRef.current = false
+            window.clearTimeout(restartTimeoutRef.current)
             recognition.onend = null
             recognition.stop()
             recognitionRef.current = null
@@ -142,6 +148,7 @@ export function useBrowserSpeechRecognition({
         if (!recognition) return
 
         shouldListenRef.current = true
+        window.clearTimeout(restartTimeoutRef.current)
         setError('')
 
         try {
@@ -154,6 +161,7 @@ export function useBrowserSpeechRecognition({
     const stopSpeechToText = useCallback(() => {
         const recognition = recognitionRef.current
         shouldListenRef.current = false
+        window.clearTimeout(restartTimeoutRef.current)
         lastInterimTranscriptRef.current = ''
         setInterimResult('')
 

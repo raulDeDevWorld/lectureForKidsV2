@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react'
+import { lookupKidsDefinition } from '@/features/dictionary/lib/kidsDictionaryLookup'
 
 export function useDictionaryLookup() {
     const [definition, setDefinition] = useState(null)
@@ -7,28 +8,13 @@ export function useDictionaryLookup() {
         setDefinition(null)
     }, [])
 
-    const lookupDefinition = useCallback(async (word) => {
-        try {
-            const response = await fetch('/api/dictionary', {
-                method: 'POST',
-                headers: {
-                    Accept: 'application/json',
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ word }),
-            })
-            const data = await response.json()
+    const lookupDefinition = useCallback((word) => {
+        const dictionaryEntry = lookupKidsDefinition(word)
 
-            setDefinition({
-                word,
-                text: data.data || 'No se encontro una definicion.',
-            })
-        } catch {
-            setDefinition({
-                word,
-                text: 'No se pudo consultar el diccionario.',
-            })
-        }
+        setDefinition({
+            word: dictionaryEntry?.word || word,
+            text: dictionaryEntry?.definition || 'Aun no tenemos una definicion para esta palabra.',
+        })
     }, [])
 
     return {

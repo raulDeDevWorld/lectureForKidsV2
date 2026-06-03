@@ -1,0 +1,318 @@
+{
+  "accion": {
+    "word": "accion",
+    "definition": "Algo que una persona o un personaje hace."
+  },
+  "acciones": {
+    "word": "acciones",
+    "definition": "Cosas que alguien hace."
+  },
+  "alegria": {
+    "word": "alegria",
+    "definition": "Sentimiento bonito que aparece cuando algo nos hace felices."
+  },
+  "amable": {
+    "word": "amable",
+    "definition": "Alguien que trata bien a los demas con carino y respeto."
+  },
+  "animales": {
+    "word": "animales",
+    "definition": "Seres vivos como perros, aves, peces, hormigas o mariposas."
+  },
+  "aparecio": {
+    "word": "aparecio",
+    "definition": "Se dejo ver o llego a un lugar."
+  },
+  "aplausos": {
+    "word": "aplausos",
+    "definition": "Golpes suaves con las manos para mostrar alegria o felicitacion."
+  },
+  "aprender": {
+    "word": "aprender",
+    "definition": "Descubrir o entender algo nuevo."
+  },
+  "ardilla": {
+    "word": "ardilla",
+    "definition": "Animal pequeno que trepa arboles y suele guardar comida."
+  },
+  "atencion": {
+    "word": "atencion",
+    "definition": "Cuidado que ponemos para escuchar, mirar o entender algo."
+  },
+  "ayuda": {
+    "word": "ayuda",
+    "definition": "Apoyo que damos o recibimos cuando algo cuesta trabajo."
+  },
+  "ayudan": {
+    "word": "ayudan",
+    "definition": "Dan apoyo a alguien que lo necesita."
+  },
+  "azul": {
+    "word": "azul",
+    "definition": "Color parecido al cielo claro o al agua limpia."
+  },
+  "bondad": {
+    "word": "bondad",
+    "definition": "Ganas de hacer el bien y tratar con carino a los demas."
+  },
+  "bosque": {
+    "word": "bosque",
+    "definition": "Lugar con muchos arboles, plantas y animales."
+  },
+  "brillar": {
+    "word": "brillar",
+    "definition": "Dar luz o verse muy especial."
+  },
+  "buho": {
+    "word": "buho",
+    "definition": "Ave que suele estar despierta de noche y tiene ojos grandes."
+  },
+  "calma": {
+    "word": "calma",
+    "definition": "Tranquilidad para pensar o actuar sin apuro."
+  },
+  "cambiar": {
+    "word": "cambiar",
+    "definition": "Hacer que algo sea diferente."
+  },
+  "camino": {
+    "word": "camino",
+    "definition": "Lugar por donde se puede andar para llegar a otro sitio."
+  },
+  "caracol": {
+    "word": "caracol",
+    "definition": "Animal pequeno que se mueve despacio y lleva una concha."
+  },
+  "colaborar": {
+    "word": "colaborar",
+    "definition": "Ayudar a otros para lograr algo juntos."
+  },
+  "colibri": {
+    "word": "colibri",
+    "definition": "Ave muy pequena que mueve sus alas muy rapido y toma nectar de flores."
+  },
+  "comenzar": {
+    "word": "comenzar",
+    "definition": "Empezar a hacer algo."
+  },
+  "comenzo": {
+    "word": "comenzo",
+    "definition": "Empezo a pasar o a hacerse."
+  },
+  "comprendio": {
+    "word": "comprendio",
+    "definition": "Entendio algo con claridad."
+  },
+  "continuar": {
+    "word": "continuar",
+    "definition": "Seguir haciendo algo sin detenerse."
+  },
+  "corazon": {
+    "word": "corazon",
+    "definition": "Parte del cuerpo que late; tambien se usa para hablar de los sentimientos."
+  },
+  "cosas": {
+    "word": "cosas",
+    "definition": "Objetos, ideas o situaciones de las que hablamos."
+  },
+  "curiosidad": {
+    "word": "curiosidad",
+    "definition": "Ganas de saber, mirar o descubrir algo."
+  },
+  "decidio": {
+    "word": "decidio",
+    "definition": "Eligio que iba a hacer."
+  },
+  "demas": {
+    "word": "demas",
+    "definition": "Las otras personas, animales o cosas."
+  },
+  "demasiado": {
+    "word": "demasiado",
+    "definition": "Mas de lo necesario o mas de lo conveniente."
+  },
+  "dia": {
+    "word": "dia",
+    "definition": "Tiempo que pasa desde una manana hasta la noche."
+  },
+  "dias": {
+    "word": "dias",
+    "definition": "Mas de un dia."
+  },
+  "diferente": {
+    "word": "diferente",
+    "definition": "Que no es igual a otra cosa o persona."
+  },
+  "dificil": {
+    "word": "dificil",
+    "definition": "Algo que cuesta trabajo hacer o entender."
+  },
+  "entonces": {
+    "word": "entonces",
+    "definition": "Palabra que usamos para decir que algo paso despues."
+  },
+  "encontro": {
+    "word": "encontro",
+    "definition": "Vio o hallo algo que estaba buscando o que aparecio en su camino."
+  },
+  "escuchar": {
+    "word": "escuchar",
+    "definition": "Prestar atencion a lo que alguien dice o a un sonido."
+  },
+  "esfuerzo": {
+    "word": "esfuerzo",
+    "definition": "Trabajo y ganas que ponemos para lograr algo."
+  },
+  "final": {
+    "word": "final",
+    "definition": "Parte donde algo termina."
+  },
+  "hacer": {
+    "word": "hacer",
+    "definition": "Realizar una accion."
+  },
+  "importante": {
+    "word": "importante",
+    "definition": "Algo que tiene mucho valor o merece atencion."
+  },
+  "junto": {
+    "word": "junto",
+    "definition": "Cerca de algo o de alguien."
+  },
+  "manana": {
+    "word": "manana",
+    "definition": "Primera parte del dia, cuando sale el sol."
+  },
+  "mariposa": {
+    "word": "mariposa",
+    "definition": "Insecto con alas de colores que vuela entre flores."
+  },
+  "mejor": {
+    "word": "mejor",
+    "definition": "Algo que esta mas bien o ayuda mas que otra opcion."
+  },
+  "mejorar": {
+    "word": "mejorar",
+    "definition": "Hacer que algo sea mas bueno, claro o facil."
+  },
+  "miro": {
+    "word": "miro",
+    "definition": "Uso los ojos para ver algo."
+  },
+  "momento": {
+    "word": "momento",
+    "definition": "Un pedacito de tiempo."
+  },
+  "necesitaba": {
+    "word": "necesitaba",
+    "definition": "Le hacia falta algo o requeria ayuda."
+  },
+  "nuevo": {
+    "word": "nuevo",
+    "definition": "Algo que acaba de aparecer, aprenderse o usarse por primera vez."
+  },
+  "oveja": {
+    "word": "oveja",
+    "definition": "Animal con lana suave que suele vivir en el campo."
+  },
+  "parecer": {
+    "word": "parecer",
+    "definition": "Dar la impresion de ser de cierta manera."
+  },
+  "pasos": {
+    "word": "pasos",
+    "definition": "Movimientos que hacemos con los pies al caminar."
+  },
+  "pensaba": {
+    "word": "pensaba",
+    "definition": "Tenia una idea en la mente."
+  },
+  "pequeno": {
+    "word": "pequeno",
+    "definition": "Algo de poco tamano."
+  },
+  "pequenos": {
+    "word": "pequenos",
+    "definition": "Cosas o seres de poco tamano."
+  },
+  "pez": {
+    "word": "pez",
+    "definition": "Animal que vive en el agua y nada con aletas."
+  },
+  "piedras": {
+    "word": "piedras",
+    "definition": "Pedazos duros de roca que se encuentran en el suelo."
+  },
+  "podia": {
+    "word": "podia",
+    "definition": "Tenia la posibilidad de hacer algo."
+  },
+  "primero": {
+    "word": "primero",
+    "definition": "Lo que va antes que lo demas."
+  },
+  "problema": {
+    "word": "problema",
+    "definition": "Situacion que necesita una solucion."
+  },
+  "problemas": {
+    "word": "problemas",
+    "definition": "Situaciones que necesitan solucion."
+  },
+  "pronto": {
+    "word": "pronto",
+    "definition": "Dentro de poco tiempo o rapidamente."
+  },
+  "queria": {
+    "word": "queria",
+    "definition": "Deseaba algo o tenia ganas de hacerlo."
+  },
+  "rana": {
+    "word": "rana",
+    "definition": "Animal pequeno que salta, vive cerca del agua y croa."
+  },
+  "resolver": {
+    "word": "resolver",
+    "definition": "Encontrar una solucion para un problema."
+  },
+  "respeto": {
+    "word": "respeto",
+    "definition": "Tratar bien a alguien y reconocer que merece cuidado."
+  },
+  "sendero": {
+    "word": "sendero",
+    "definition": "Camino pequeno por donde se puede caminar."
+  },
+  "ser": {
+    "word": "ser",
+    "definition": "Existir o tener una forma de ser."
+  },
+  "siempre": {
+    "word": "siempre",
+    "definition": "Todas las veces o en todo momento."
+  },
+  "sintio": {
+    "word": "sintio",
+    "definition": "Noto algo en su cuerpo o en su corazon."
+  },
+  "sol": {
+    "word": "sol",
+    "definition": "Estrella que nos da luz y calor durante el dia."
+  },
+  "tambien": {
+    "word": "tambien",
+    "definition": "Palabra que usamos para agregar otra cosa parecida."
+  },
+  "valor": {
+    "word": "valor",
+    "definition": "Importancia que tiene algo; tambien puede significar valentia."
+  },
+  "verguenza": {
+    "word": "verguenza",
+    "definition": "Sentimiento que aparece cuando algo nos da pena o nos incomoda."
+  },
+  "vez": {
+    "word": "vez",
+    "definition": "Una ocasion en que ocurre algo."
+  }
+}

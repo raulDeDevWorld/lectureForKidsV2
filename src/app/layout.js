@@ -1,5 +1,6 @@
 import './globals.css'
 import { Quicksand } from 'next/font/google'
+import { AuthProvider } from '@/features/auth/components/AuthProvider'
 import { PwaRuntime } from '@/features/pwa/components/PwaRuntime'
 
 const quicksand = Quicksand({
@@ -25,10 +26,12 @@ export default function RootLayout({ children }) {
         <title>Fabulas 3000</title>
       </head>
       <body className={quicksand.className}>
-        <PwaRuntime />
-        <main id="home" className="min-h-screen">
-          {children}
-        </main>
+        <AuthProvider>
+          <PwaRuntime />
+          <main id="home" className="min-h-screen">
+            {children}
+          </main>
+        </AuthProvider>
       </body>
     </html>
   )

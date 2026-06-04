@@ -1,15 +1,20 @@
-const CACHE_NAME = 'fabulas-3000-v4'
+const CACHE_NAME = 'fabulas-3000-v5'
 const APP_SHELL = [
   '/',
   '/cuentos',
   '/manifest.json',
   '/ambiente.mp3',
   '/tiger.png',
-  '/stories/el-leon-y-el-raton.webp',
-  '/stories/la-tortuga-y-la-liebre.svg',
-  '/stories/el-pajarito-curioso.svg',
-  '/stories/suenos-de-estrellas.svg',
-  '/stories/placeholder-story.svg',
+  '/stories/el_leon_y_el_raton.webp',
+  '/stories/la_liebre_y_la_tortuga.webp',
+  '/stories/la_zorra_y_las_uvas.webp',
+  '/stories/la_hormiga_y_la_cigarra.webp',
+  '/stories/el_cuervo_y_la_jarra.webp',
+  '/stories/el_pastorcito_y_el_lobo.webp',
+  '/stories/la_zorra_y_el_cuervo.webp',
+  '/stories/el_perro_y_su_reflejo.webp',
+  '/stories/el_viento_y_el_sol.webp',
+  '/stories/la_gallina_de_los_huevos_dorados.webp',
 ]
 
 self.addEventListener('install', (event) => {

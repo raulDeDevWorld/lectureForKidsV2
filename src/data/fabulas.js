@@ -1,21 +1,20 @@
+import { readdirSync } from 'node:fs'
+import path from 'node:path'
 import { fabulas as rawFabulas } from '@/db/fabulas'
 import { getReadingTime } from '@/lib/readingTime'
 import { slugify } from '@/lib/slugify'
 
 const fallbackImages = [
-    '/stories/el-leon-y-el-raton.webp',
-    '/stories/la-tortuga-y-la-liebre.svg',
-    '/stories/el-pajarito-curioso.svg',
-    '/stories/suenos-de-estrellas.svg',
-    '/stories/placeholder-story.svg',
+    '/stories/el_leon_y_el_raton.webp',
+    '/stories/la_liebre_y_la_tortuga.webp',
+    '/stories/la_zorra_y_las_uvas.webp',
+    '/stories/la_hormiga_y_la_cigarra.webp',
+    '/stories/el_cuervo_y_la_jarra.webp',
 ]
 
 const colorOrder = ['blue', 'mint', 'peach', 'lavender', 'yellow']
-
-const storyImageBySlug = {
-    'el-leon-y-el-raton': '/stories/el-leon-y-el-raton.webp',
-    'la-tortuga-y-la-liebre': '/stories/la-tortuga-y-la-liebre.svg',
-}
+const storyImageExtensions = ['webp', 'png', 'jpg', 'jpeg', 'svg']
+const storyImageFilenames = getStoryImageFilenames()
 
 const usedSlugs = new Set()
 
@@ -36,7 +35,7 @@ export const fabulas = Object.entries(rawFabulas).map(([id, story], index) => {
         category: story.category || 'Fabula',
         ageRange: story.ageRange || '4-8',
         readingTime: story.readingTime || getReadingTime(fullText),
-        imageUrl: story.imageUrl || storyImageBySlug[baseSlug] || fallbackImages[index % fallbackImages.length],
+        imageUrl: story.imageUrl || getStoryImageUrl(baseSlug, index),
         color: story.color || colorOrder[index % colorOrder.length],
     }
 })
@@ -66,4 +65,21 @@ function normalizeContent(content) {
         .split(/\n{2,}/)
         .map((paragraph) => paragraph.replace(/\s+/g, ' ').trim())
         .filter(Boolean)
+}
+
+function getStoryImageUrl(baseSlug, index) {
+    const filenameBase = baseSlug.replaceAll('-', '_')
+    const filename = storyImageExtensions
+        .map((extension) => `${filenameBase}.${extension}`)
+        .find((candidate) => storyImageFilenames.has(candidate))
+
+    return filename ? `/stories/${filename}` : fallbackImages[index % fallbackImages.length]
+}
+
+function getStoryImageFilenames() {
+    try {
+        return new Set(readdirSync(path.join(process.cwd(), 'public', 'stories')))
+    } catch {
+        return new Set()
+    }
 }

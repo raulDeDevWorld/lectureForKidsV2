@@ -28,7 +28,7 @@ export function HomeHero() {
                 <StoryImage
                     alt='Leon leyendo un cuento'
                     className='aspect-[4/3] bg-[linear-gradient(135deg,#FFF9EF,#EAF7FF)] p-3'
-                    imageUrl='/stories/el-leon-y-el-raton.svg'
+                    imageUrl='/stories/el_leon_y_el_raton.webp'
                     priority
                 />
             </section>

@@ -119,7 +119,7 @@ export function HomeHero({ stories = [] }) {
                                     onClick={changeStory}
                                     className='inline-flex min-h-12 items-center justify-center rounded-[1.35rem] bg-[#F8FBFF] px-4 text-sm font-black text-[#1F2A44] shadow-sm ring-1 ring-[#E7EEF8] transition active:scale-[0.98]'
                                 >
-                                    Cambiar
+                                    Cambiar cuento
                                 </button>
                             </div>
                         </div>

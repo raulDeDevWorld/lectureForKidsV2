@@ -13,7 +13,7 @@ export function StoryImage({ alt, className = '', imageUrl, priority = false, si
                 height={dimensions.height}
                 alt={alt}
                 priority={priority}
-                className='h-full w-full object-contain'
+                className='h-full w-full rounded-[1.35rem] object-contain'
             />
         </div>
     )

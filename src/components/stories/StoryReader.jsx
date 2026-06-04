@@ -154,7 +154,7 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
     }, [stopSpeechToText])
 
     return (
-        <div className='relative min-h-screen overflow-hidden bg-[#a6e5fc] pb-40 text-[#1F2A44]'>
+        <div className='relative min-h-screen overflow-hidden bg-[#25c5ff] pb-40 text-[#1F2A44]'>
             {showConfetti ? (
                 <Confetti
                     width={windowWidth}
@@ -210,7 +210,7 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
                     />
                 </section>
 
-                <article className='relative -mt-4 mx-4 flex-1 rounded-[2.25rem] bg-[#ffffffb0] p-5 shadow-[0_20px_58px_rgba(31,42,68,0.12)] ring-1 ring-white/80 sm:p-7'>
+                <article className='relative -mt-4 mx-4 flex-1 rounded-[2.25rem] bg-[#f7f7f750] p-5 shadow-[0_20px_58px_rgba(31,42,68,0.12)] ring-1 ring-white/80 sm:p-7'>
                     <div className='flex items-start justify-between gap-4'>
                         <div>
                             <p className='w-fit rounded-full bg-[#F3F4F6] px-3 py-1 text-xs font-black uppercase tracking-[0.14em] text-[#7A8194]'>{story.category}</p>

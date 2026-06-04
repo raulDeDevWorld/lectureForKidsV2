@@ -2,6 +2,7 @@ import { BookIcon, HeartIcon, StarIcon, TicketIcon } from '@/components/icons/Ic
 import { AppShell } from '@/components/layout/AppShell'
 import { HomeCard } from '@/components/home/HomeCard'
 import { HomeHero } from '@/components/home/HomeHero'
+import { getStories } from '@/data/fabulas'
 
 const homeCards = [
     { title: 'Cuentos', href: '/cuentos', color: 'blue', icon: BookIcon },
@@ -11,10 +12,12 @@ const homeCards = [
 ]
 
 export default function Home() {
+    const stories = getStories()
+
     return (
         <AppShell>
             <div className='space-y-7'>
-                <HomeHero />
+                <HomeHero stories={stories} />
 
                 <section className='grid grid-cols-2 gap-4'>
                     {homeCards.map((card) => (

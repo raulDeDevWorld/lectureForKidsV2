@@ -2,6 +2,10 @@
 
 import { useEffect, useState } from 'react'
 
+function isLocalDevelopmentHost() {
+    return ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname)
+}
+
 export function PwaInstallPrompt({ compact = false }) {
     const [installEvent, setInstallEvent] = useState(null)
     const [isInstalled, setIsInstalled] = useState(false)
@@ -14,7 +18,7 @@ export function PwaInstallPrompt({ compact = false }) {
     })
 
     useEffect(() => {
-        if ('serviceWorker' in navigator) {
+        if ('serviceWorker' in navigator && !isLocalDevelopmentHost()) {
             navigator.serviceWorker.register('/sw.js').catch(() => {})
         }
 

@@ -136,3 +136,17 @@ export const pricingGroups = [
         ],
     },
 ]
+
+export function getPricingSelection(planId) {
+    for (const group of pricingGroups) {
+        const plan = group.plans.find((item) => item.id === planId)
+
+        if (plan) {
+            return { group, plan }
+        }
+    }
+
+    const fallbackGroup = pricingGroups[0]
+    const fallbackPlan = fallbackGroup.plans.find((plan) => plan.featured) || fallbackGroup.plans[0]
+    return { group: fallbackGroup, plan: fallbackPlan }
+}

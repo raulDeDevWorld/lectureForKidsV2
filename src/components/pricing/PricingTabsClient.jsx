@@ -1,25 +1,26 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import Link from 'next/link'
 
 const audienceStyles = {
     familia: {
         accent: 'bg-[#FFF7CC] text-[#8A5A00]',
-        button: 'bg-[#1F2A44] text-white shadow-[0_8px_0_rgba(31,42,68,0.16)]',
+        button: 'bg-[#FFD166] text-[#1F2A44] shadow-[0_8px_0_rgba(255,209,102,0.24)]',
         featured: 'border-[#FFD166] bg-[#1F2A44] text-white shadow-[0_20px_48px_rgba(31,42,68,0.20)]',
         pill: 'bg-[#FFD166] text-[#1F2A44]',
         tab: 'bg-[#1F2A44] text-white',
     },
     profesor: {
         accent: 'bg-[#EAF2FF] text-[#1D4E89]',
-        button: 'bg-[#1D4E89] text-white shadow-[0_8px_0_rgba(29,78,137,0.18)]',
+        button: 'bg-white text-[#1D4E89] shadow-[0_8px_0_rgba(255,255,255,0.18)]',
         featured: 'border-[#1D4E89] bg-[#1D4E89] text-white shadow-[0_20px_48px_rgba(29,78,137,0.20)]',
         pill: 'bg-[#D7E8FF] text-[#1D4E89]',
         tab: 'bg-[#1D4E89] text-white',
     },
     institucion: {
         accent: 'bg-[#EAF8F1] text-[#237A4D]',
-        button: 'bg-[#237A4D] text-white shadow-[0_8px_0_rgba(35,122,77,0.18)]',
+        button: 'bg-white text-[#237A4D] shadow-[0_8px_0_rgba(255,255,255,0.18)]',
         featured: 'border-[#237A4D] bg-[#237A4D] text-white shadow-[0_20px_48px_rgba(35,122,77,0.20)]',
         pill: 'bg-[#BFE8D4] text-[#1F2A44]',
         tab: 'bg-[#237A4D] text-white',
@@ -133,12 +134,12 @@ function PlanCard({ group, plan, styles }) {
                 </div>
             </div>
 
-            <button
-                type='button'
+            <Link
+                href={`/solicitar?plan=${plan.id}`}
                 className={`mt-auto inline-flex min-h-12 items-center justify-center rounded-[1.4rem] px-4 text-sm font-black transition active:scale-[0.98] ${featured ? styles.button : 'bg-[#F3F4F6] text-[#1F2A44]'}`}
             >
                 {featured ? group.cta : `Elegir ${plan.name}`}
-            </button>
+            </Link>
         </article>
     )
 }

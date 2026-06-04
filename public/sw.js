@@ -4,6 +4,7 @@ const APP_SHELL = [
   '/cuentos',
   '/aprender',
   '/precios',
+  '/solicitar',
   '/aprender/vocales',
   '/aprender/abecedario',
   '/aprender/numeros',

@@ -5,7 +5,7 @@ import { HomeHero } from '@/components/home/HomeHero'
 
 const homeCards = [
     { title: 'Cuentos', href: '/cuentos', color: 'blue', icon: BookIcon },
-    { title: 'Aprender', href: '/cuentos?categoria=Aprender', color: 'mint', icon: StarIcon },
+    { title: 'Aprender', href: '/aprender', color: 'mint', icon: StarIcon },
     { title: 'Favoritos', href: '/cuentos?favoritos=1', color: 'peach', icon: HeartIcon },
     { title: 'Juegos', href: '/cuentos', color: 'lavender', icon: GameIcon },
 ]

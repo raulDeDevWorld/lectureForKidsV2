@@ -21,7 +21,7 @@ export default function RequestPlanPage() {
                         <div className='min-w-0'>
                             <p className='text-xs font-black uppercase tracking-[0.14em] text-[#7A8194]'>Solicitud</p>
                             <h1 className='text-3xl font-black leading-tight text-[#1F2A44]'>Completa tu acceso</h1>
-                            <p className='mt-1 text-sm font-bold leading-6 text-[#7A8194]'>Primero inicia con Google, luego registra los datos para continuar al QR.</p>
+                            <p className='mt-1 text-sm font-bold leading-6 text-[#7A8194]'>Registro seguro para activar tu plan.</p>
                         </div>
                     </div>
                 </header>

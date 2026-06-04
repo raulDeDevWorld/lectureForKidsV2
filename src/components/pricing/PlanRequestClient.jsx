@@ -72,12 +72,12 @@ export function PlanRequestClient() {
             </div>
 
             {!isAuthReady ? (
-                <div className='p-5 text-sm font-black text-[#7A8194]'>Preparando inicio de sesion...</div>
+                <div className='p-5 text-sm font-black text-[#7A8194]'>Preparando inicio de sesión...</div>
             ) : !user ? (
                 <div className='p-5'>
                     <div className='rounded-[2rem] bg-white p-5 shadow-[0_10px_26px_rgba(31,42,68,0.08)] ring-1 ring-[#EEF2F7]'>
                         <h3 className='text-2xl font-black leading-tight text-[#1F2A44]'>Inicia con Gmail para continuar</h3>
-                        <p className='mt-2 text-sm font-bold leading-6 text-[#7A8194]'>Usaremos tu cuenta Google para asociar el plan y recuperar tu acceso.</p>
+                        <p className='mt-2 text-sm font-bold leading-6 text-[#7A8194]'>Tu acceso quedará vinculado a esta cuenta.</p>
                         {authError ? (
                             <p className='mt-3 rounded-2xl bg-[#FFE8E3] px-4 py-3 text-sm font-black text-[#9F2D20]'>{authError}</p>
                         ) : null}
@@ -106,15 +106,15 @@ export function PlanRequestClient() {
                         <div className='grid gap-2 sm:col-span-2'>
                             <label className='grid gap-2 text-sm font-black text-[#1F2A44]'>
                                 Nombre completo del responsable
-                                <input required name='payerName' value={form.payerName} onChange={updateField} placeholder='Nombre de quien hara el deposito' className='min-h-12 rounded-[1.2rem] border border-[#E5E7EB] bg-white px-4 font-bold outline-none focus:border-[#A7D8F5]' />
+                                <input required name='payerName' value={form.payerName} onChange={updateField} placeholder='Nombre de quien hará el pago' className='min-h-12 rounded-[1.2rem] border border-[#E5E7EB] bg-white px-4 font-bold outline-none focus:border-[#A7D8F5]' />
                             </label>
                             <p className='rounded-[1.2rem] bg-[#FFF7CC] px-4 py-3 text-xs font-black leading-5 text-[#8A5A00]'>
-                                Usa el mismo nombre que aparecera en el comprobante de pago.
+                                Usa el mismo nombre que aparecerá en el comprobante de pago.
                             </p>
                         </div>
 
                         <label className='grid gap-2 text-sm font-black text-[#1F2A44]'>
-                            Celular de recuperacion
+                            Celular de recuperación
                             <input required name='recoveryPhone' value={form.recoveryPhone} onChange={updateField} inputMode='tel' placeholder='Ej. 70000000' className='min-h-12 rounded-[1.2rem] border border-[#E5E7EB] bg-white px-4 font-bold outline-none focus:border-[#A7D8F5]' />
                         </label>
 
@@ -150,7 +150,7 @@ function QrStep({ form, group, onBack, plan, user }) {
             `Monto: ${plan.offerPrice} Bs`,
             `Cuenta Google: ${user.email}`,
             `Responsable del pago: ${form.payerName}`,
-            `Estudiante: ${form.studentName}, ${form.studentAge} anos`,
+            `Estudiante: ${form.studentName}, ${form.studentAge} años`,
             `Celular: ${form.recoveryPhone}`,
         ].join('\n')
 
@@ -172,7 +172,7 @@ function QrStep({ form, group, onBack, plan, user }) {
                 return
             }
 
-            setPaymentStatus('Aun no encontramos el pago. Intenta nuevamente en unos minutos.')
+            setPaymentStatus('Aún no encontramos el pago. Intenta nuevamente en unos minutos.')
             setShowSupportButton(true)
         } finally {
             setIsVerifyingPayment(false)
@@ -219,11 +219,11 @@ function QrStep({ form, group, onBack, plan, user }) {
                 <div className='mt-4 space-y-2 text-sm font-bold text-[#5B6477]'>
                     <p>Cuenta: {user.email}</p>
                     <p>Responsable del pago: {form.payerName}</p>
-                    <p>Estudiante: {form.studentName}, {form.studentAge} anos</p>
+                    <p>Estudiante: {form.studentName}, {form.studentAge} años</p>
                     <p>Celular: {form.recoveryPhone}</p>
                 </div>
                 <p className='mt-4 rounded-[1.4rem] bg-white px-4 py-3 text-sm font-black leading-6 text-[#7A8194]'>
-                    Este paso ya esta preparado para conectar el QR real de pago. Cuando tengas el QR o proveedor de pagos, reemplazamos este bloque por el QR final.
+                    Realiza el pago con el nombre registrado y conserva tu comprobante.
                 </p>
                 <button type='button' onClick={onBack} className='mt-4 rounded-[1.4rem] bg-white px-4 py-3 text-sm font-black text-[#1F2A44] shadow-sm'>
                     Editar datos

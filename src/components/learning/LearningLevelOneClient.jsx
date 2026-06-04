@@ -112,7 +112,7 @@ export function LearningLevelOneClient({ modules }) {
                         <StarIcon className='h-6 w-6' />
                     </div>
                     <div className='min-w-0'>
-                        <p className='text-xs font-black uppercase tracking-[0.14em] text-[#7A8194]'>Practica rapida</p>
+                        <p className='text-xs font-black uppercase tracking-[0.14em] text-[#7A8194]'>Práctica rápida</p>
                         <h3 className='mt-1 text-xl font-black leading-tight text-[#1F2A44]'>{activeModule.quiz.question}</h3>
                     </div>
                 </div>

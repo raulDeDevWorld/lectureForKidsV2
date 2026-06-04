@@ -21,7 +21,7 @@ export default function PricingPage() {
                         <div className='min-w-0'>
                             <p className='text-xs font-black uppercase tracking-[0.14em] text-[#7A8194]'>Precios</p>
                             <h1 className='text-3xl font-black leading-tight text-[#1F2A44]'>Elige segun tu forma de usar la app</h1>
-                            <p className='mt-1 max-w-2xl text-sm font-bold leading-6 text-[#7A8194]'>Casa, aula o institucion: cada plan muestra solo lo que corresponde a ese tipo de usuario.</p>
+                            <p className='mt-1 max-w-2xl text-sm font-bold leading-6 text-[#7A8194]'>Planes para casa, docentes e instituciones.</p>
                         </div>
                     </div>
                 </header>

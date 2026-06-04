@@ -22,7 +22,7 @@ export const pricingGroups = [
                 offerPrice: 9,
                 period: 'mes',
                 description: 'Acceso mes a mes.',
-                summary: 'Para probar',
+                summary: 'Acceso mensual',
             },
             {
                 id: 'trimestral',

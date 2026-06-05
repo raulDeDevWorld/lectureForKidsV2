@@ -44,7 +44,6 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
     const { height: windowHeight, width: windowWidth } = useWindowSize()
     const { closeDefinition, definition, lookupDefinition } = useDictionaryLookup()
     const {
-        advanceManually,
         currentText,
         currentWord,
         handleSpeech,
@@ -301,7 +300,6 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
             <SpeechToText
                 error={error}
                 isRecording={listeningActive}
-                onManualAdvance={advanceManually}
                 startSpeechToText={startListening}
                 stopSpeechToText={stopListening}
                 value={displayText}

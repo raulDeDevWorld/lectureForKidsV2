@@ -154,18 +154,7 @@ export function useReadingSession(story, options = {}) {
         scheduleSpeechEvent(createSpeechEvent({ text: speechText, type }))
     }, [scheduleSpeechEvent])
 
-    const advanceManually = useCallback(() => {
-        const currentToken = session.wordTokens[session.currentIndex]
-        if (!currentToken) return
-
-        scheduleSpeechEvent(createSpeechEvent({
-            text: currentToken.raw,
-            type: SPEECH_EVENT_TYPE.FINAL,
-        }))
-    }, [scheduleSpeechEvent, session.currentIndex, session.wordTokens])
-
     return {
-        advanceManually,
         currentText,
         currentWord,
         handleSpeech,

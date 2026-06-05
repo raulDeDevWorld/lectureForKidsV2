@@ -10,7 +10,6 @@ export function SpeechToText({
     missedStreak,
     error,
     isRecording,
-    onManualAdvance,
     startSpeechToText,
     stopSpeechToText,
 }) {
@@ -27,7 +26,6 @@ export function SpeechToText({
     const canRecord = !error
     const buttonBackground = isRecording ? '#ff6b6b' : '#172554'
     const hasTranscriptParts = stableWords.length > 0 || unstableText
-    const canAdvanceManually = Boolean(currentWord && onManualAdvance)
 
     function handleMicrophoneClick() {
         if (!canRecord) return
@@ -59,7 +57,7 @@ export function SpeechToText({
                         )}
                     </div> */}
 
-                    <div className='mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2'>
+                    <div className='mt-2 grid grid-cols-1 gap-2'>
                         <button
                             type='button'
                             className='flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-black shadow-[0_5px_0_rgba(23,37,84,0.16)] transition active:translate-y-0.5 active:shadow-none'
@@ -88,15 +86,6 @@ export function SpeechToText({
                                 </span>
                             </span>
                             {error ? 'Sin voz' : (isRecording ? 'Detener microfono' : 'Activar microfono')}
-                        </button>
-
-                        <button
-                            type='button'
-                            className='flex w-full items-center justify-center rounded-2xl border-[3px] border-[#172554] bg-white px-4 py-3 text-sm font-black text-[#172554] shadow-[0_5px_0_rgba(23,37,84,0.12)] transition active:translate-y-0.5 active:shadow-none disabled:cursor-not-allowed disabled:opacity-50'
-                            onClick={onManualAdvance}
-                            disabled={!canAdvanceManually}
-                        >
-                            Avanzar manual
                         </button>
                     </div>
                 </div>

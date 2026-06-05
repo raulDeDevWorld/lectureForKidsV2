@@ -213,20 +213,20 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
                     <div className='flex items-start w-full justify-between gap-4 '>
                         <div>
                             <p className='w-fit rounded-full bg-[#F3F4F6] px-3 py-1 text-xs font-black uppercase tracking-[0.14em] text-[#7A8194] mb-5'>{story.category}</p>
-                            <StoryText
-                                activeSection={section}
-                                className='mt-1 text-3xl font-black leading-tight text-[#1F2A44] sm:text-4xl  p-5 bg-[#F3F4F6]  rounded-[2.25rem]'
-                                narrationHighlight={narrationHighlight}
-                                onLookupWord={lookupDefinition}
-                                onPlayWord={playWord}
-                                renderableTokens={renderableTokens}
-                                section='title'
-                                text={story.title}
-                            />
+
                         </div>
                         <FavoriteButton active={isFavorite} onToggle={onToggleFavorite} />
                     </div>
-
+                    <StoryText
+                        activeSection={section}
+                        className='mt-1 text-3xl font-black leading-tight text-[#1F2A44] sm:text-4xl  p-5 bg-[#F3F4F6]  rounded-[2.25rem] text-center'
+                        narrationHighlight={narrationHighlight}
+                        onLookupWord={lookupDefinition}
+                        onPlayWord={playWord}
+                        renderableTokens={renderableTokens}
+                        section='title'
+                        text={story.title}
+                    />
                     <div className='mt-5 rounded-3xl bg-[#ffffff] p-4'>
                         <div className='flex items-center justify-between text-xs font-black uppercase tracking-[0.14em] text-[#7A8194]'>
                             <span>Progreso {progressPercent}%</span>
@@ -447,7 +447,7 @@ function playAmbientAudio(audioRef) {
     const audio = getAmbientAudio(audioRef)
 
     audio.currentTime = 0
-    audio.play().catch(() => {})
+    audio.play().catch(() => { })
 }
 
 function stopAmbientAudio(audioRef) {

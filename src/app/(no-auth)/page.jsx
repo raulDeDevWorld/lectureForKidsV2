@@ -3,6 +3,7 @@ import { AppShell } from '@/components/layout/AppShell'
 import { HomeCard } from '@/components/home/HomeCard'
 import { HomeHero } from '@/components/home/HomeHero'
 import { getStories } from '@/data/fabulas'
+import { PwaInstallPrompt } from '@/features/pwa/components/PwaInstallPrompt'
 
 const homeCards = [
     { title: 'Cuentos', description: 'Historias cortas para leer hoy.', href: '/cuentos', color: 'blue', icon: BookIcon },
@@ -18,6 +19,8 @@ export default function Home() {
         <AppShell>
             <div className='space-y-7'>
                 <HomeHero stories={stories} />
+
+                <PwaInstallPrompt variant='card' />
 
                 <section className='grid grid-cols-2 gap-4'>
                     {homeCards.map((card) => (

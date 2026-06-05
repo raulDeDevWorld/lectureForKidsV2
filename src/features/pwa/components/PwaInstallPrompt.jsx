@@ -1,20 +1,27 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { DownloadIcon } from '@/components/icons/Icons'
 
 function isLocalDevelopmentHost() {
     return ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname)
 }
 
-export function PwaInstallPrompt({ compact = false }) {
+function isStandaloneApp() {
+    if (typeof window === 'undefined') return false
+
+    return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone
+}
+
+export function PwaInstallPrompt({ compact = false, variant = 'button' }) {
     const [installEvent, setInstallEvent] = useState(null)
-    const [isInstalled, setIsInstalled] = useState(false)
+    const [isDismissed, setIsDismissed] = useState(false)
+    const [isInstalled, setIsInstalled] = useState(() => isStandaloneApp())
     const [showIosHint] = useState(() => {
         if (typeof window === 'undefined') return false
 
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone
         const isIos = /iphone|ipad|ipod/i.test(window.navigator.userAgent)
-        return isIos && !isStandalone
+        return isIos && !isStandaloneApp()
     })
 
     useEffect(() => {
@@ -24,6 +31,7 @@ export function PwaInstallPrompt({ compact = false }) {
 
         const handleBeforeInstallPrompt = (event) => {
             event.preventDefault()
+            setIsDismissed(false)
             setInstallEvent(event)
         }
 
@@ -41,7 +49,7 @@ export function PwaInstallPrompt({ compact = false }) {
         }
     }, [])
 
-    if (isInstalled) return null
+    if (isInstalled || isDismissed) return null
 
     async function installApp() {
         await installEvent.prompt()
@@ -58,6 +66,42 @@ export function PwaInstallPrompt({ compact = false }) {
     }
 
     if (!installEvent) return null
+
+    if (variant === 'card') {
+        return (
+            <section className='overflow-hidden rounded-[2rem] bg-[#172554] p-4 text-white shadow-[0_16px_42px_rgba(31,42,68,0.16)] ring-1 ring-white/60 sm:p-5'>
+                <div className='flex items-start gap-3'>
+                    <div className='flex h-12 w-12 shrink-0 items-center justify-center rounded-[1rem] bg-[#FFD166] text-[#1F2A44] shadow-sm'>
+                        <DownloadIcon className='h-6 w-6' />
+                    </div>
+                    <div className='min-w-0 flex-1'>
+                        <p className='text-xs font-black uppercase tracking-[0.14em] text-[#BFE8D4]'>Acceso rapido</p>
+                        <h2 className='mt-1 text-xl font-black leading-tight'>Instala Fabulas 3000</h2>
+                        <p className='mt-1 text-sm font-bold leading-5 text-white/78'>
+                            Abrela desde la pantalla de inicio y entra directo a cuentos y actividades.
+                        </p>
+                    </div>
+                </div>
+
+                <div className='mt-4 grid grid-cols-[1fr_auto] gap-3'>
+                    <button
+                        type='button'
+                        onClick={installApp}
+                        className='inline-flex min-h-12 items-center justify-center rounded-[1.2rem] bg-white px-4 text-sm font-black text-[#172554] shadow-[0_6px_0_rgba(255,255,255,0.18)] transition active:translate-y-0.5 active:shadow-none'
+                    >
+                        Instalar
+                    </button>
+                    <button
+                        type='button'
+                        onClick={() => setIsDismissed(true)}
+                        className='inline-flex min-h-12 items-center justify-center rounded-[1.2rem] bg-white/10 px-4 text-xs font-black text-white ring-1 ring-white/18 transition active:scale-[0.98]'
+                    >
+                        Ahora no
+                    </button>
+                </div>
+            </section>
+        )
+    }
 
     return (
         <button

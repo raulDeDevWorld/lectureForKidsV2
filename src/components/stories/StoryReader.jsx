@@ -209,13 +209,13 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
                     />
                 </section>
 
-                <article className='relative -mt-4 mx-4 flex-1 rounded-[2.25rem] bg-[#F3F4F6] md:bg-[#f7f7f750] pt-5 md:p-5 shadow-[0_20px_58px_rgba(31,42,68,0.12)] ring-1 ring-white/80 sm:p-7'>
-                    <div className='flex items-start w-full justify-between gap-4 p-5'>
+                <article className='relative -mt-4 mx-4 flex-1 rounded-[2.25rem] bg-[#f3f4f600] md:bg-[#f7f7f750] py-5 md:p-5 shadow-[0_20px_58px_rgba(31,42,68,0.12)] md:ring-1 ring-white/80 sm:p-7'>
+                    <div className='flex items-start w-full justify-between gap-4 '>
                         <div>
                             <p className='w-fit rounded-full bg-[#F3F4F6] px-3 py-1 text-xs font-black uppercase tracking-[0.14em] text-[#7A8194] mb-5'>{story.category}</p>
                             <StoryText
                                 activeSection={section}
-                                className='mt-1 text-3xl font-black leading-tight text-[#1F2A44] sm:text-4xl'
+                                className='mt-1 text-3xl font-black leading-tight text-[#1F2A44] sm:text-4xl  p-5 bg-[#F3F4F6]  rounded-[2.25rem]'
                                 narrationHighlight={narrationHighlight}
                                 onLookupWord={lookupDefinition}
                                 onPlayWord={playWord}

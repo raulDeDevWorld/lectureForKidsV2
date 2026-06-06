@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import Image from 'next/image'
 import { ArrowLeftIcon, ArrowRightIcon, BookIcon, GameIcon, MicrophoneIcon, SpeakerIcon, StarIcon } from '@/components/icons/Icons'
 
 const activityStyles = {
@@ -50,12 +51,12 @@ const activityMeta = {
     vocales: {
         icon: MicrophoneIcon,
         title: 'Vocales',
-        badge: 'Escucha y elige',
-        description: 'Reconoce la vocal correcta.',
+        badge: 'Entrenador diario',
+        description: '10 retos mezclados con sonido, palabra e imagen.',
         prompt: 'Que vocal escuchas en uva?',
         answer: 'U',
         options: ['U', 'A', 'O'],
-        samples: ['U', 'A', 'O'],
+        samples: ['A', 'E', 'I', 'O', 'U'],
         speakText: 'U de uva',
     },
     abecedario: {
@@ -93,6 +94,108 @@ const activityMeta = {
     },
 }
 
+const VOWEL_ROUND_SIZE = 10
+const VOWEL_EXERCISE_TYPES = ['listen', 'image', 'complete', 'match', 'hidden']
+
+function shuffleItems(items) {
+    return [...items].sort(() => Math.random() - 0.5)
+}
+
+function buildVowelRound(items) {
+    const vowelItems = items.filter((item) => item.value && item.word)
+    const orderedItems = shuffleItems(vowelItems)
+    const orderedTypes = shuffleItems(VOWEL_EXERCISE_TYPES)
+
+    return Array.from({ length: VOWEL_ROUND_SIZE }, (_, index) => {
+        const target = orderedItems[index % orderedItems.length]
+        const type = orderedTypes[index % orderedTypes.length]
+
+        return buildVowelQuestion(target, vowelItems, type, index)
+    })
+}
+
+function buildVowelQuestion(target, items, type, index) {
+    if (type === 'match') {
+        return {
+            id: `${type}-${target.value}-${index}`,
+            type,
+            badge: 'Asocia',
+            prompt: `Que palabra empieza con ${target.value}?`,
+            instruction: 'Elige la palabra correcta.',
+            target,
+            answer: target.word,
+            answerLabel: target.word,
+            options: buildOptions(items, target.value, (item) => ({
+                label: item.word,
+                value: item.word,
+            })),
+            speakText: `Busca una palabra que empieza con ${target.value}`,
+        }
+    }
+
+    const questionByType = {
+        complete: {
+            badge: 'Completa',
+            prompt: `Completa la palabra ${blankFirstLetter(target.word)}`,
+            instruction: 'Toca la vocal que falta.',
+            speakText: `${target.example}. Completa la palabra ${target.word}`,
+        },
+        hidden: {
+            badge: 'Encuentra',
+            prompt: `Que vocal escuchas al inicio de ${target.word}?`,
+            instruction: 'Observa la palabra y elige.',
+            speakText: `${target.word} empieza con ${target.value}`,
+        },
+        image: {
+            badge: 'Mira',
+            prompt: `Con que vocal empieza ${target.word}?`,
+            instruction: 'Mira la imagen y responde.',
+            speakText: target.example,
+        },
+        listen: {
+            badge: 'Escucha',
+            prompt: 'Escucha la palabra y elige la vocal inicial.',
+            instruction: 'Pulsa escuchar si necesitas ayuda.',
+            speakText: target.example,
+        },
+    }
+    const copy = questionByType[type] || questionByType.listen
+
+    return {
+        id: `${type}-${target.value}-${index}`,
+        type,
+        ...copy,
+        target,
+        answer: target.value,
+        answerLabel: target.value,
+        options: buildOptions(items, target.value, (item) => ({
+            label: item.value,
+            value: item.value,
+        })),
+    }
+}
+
+function buildOptions(items, correctValue, mapOption) {
+    const correct = items.find((item) => item.value === correctValue)
+    const wrongOptions = shuffleItems(items.filter((item) => item.value !== correctValue)).slice(0, 2)
+
+    return shuffleItems([correct, ...wrongOptions]).map(mapOption)
+}
+
+function blankFirstLetter(word) {
+    return `_${word.slice(1)}`
+}
+
+function speakText(text) {
+    if (!('speechSynthesis' in window)) return
+
+    window.speechSynthesis.cancel()
+    const utterance = new SpeechSynthesisUtterance(text)
+    utterance.lang = 'es-ES'
+    utterance.rate = 0.9
+    window.speechSynthesis.speak(utterance)
+}
+
 export function PracticePageClient({ modules }) {
     const activities = useMemo(() => modules.map((module) => ({
         ...module,
@@ -126,13 +229,7 @@ export function PracticePageClient({ modules }) {
 
     function speakCurrentChallenge() {
         if (!activeActivity) return
-        if (!('speechSynthesis' in window)) return
-
-        window.speechSynthesis.cancel()
-        const utterance = new SpeechSynthesisUtterance(activeActivity.speakText)
-        utterance.lang = 'es-ES'
-        utterance.rate = 0.9
-        window.speechSynthesis.speak(utterance)
+        speakText(activeActivity.speakText)
     }
 
     if (!activeActivity) {
@@ -150,6 +247,16 @@ export function PracticePageClient({ modules }) {
     }
 
     const styles = activityStyles[activeActivity.color] || activityStyles.blue
+
+    if (activeActivity.id === 'vocales') {
+        return (
+            <VowelPracticeTrainer
+                activity={activeActivity}
+                styles={styles}
+                onBack={leaveActivity}
+            />
+        )
+    }
 
     return (
         <div className='space-y-5'>
@@ -223,6 +330,294 @@ export function PracticePageClient({ modules }) {
                     </p>
                 ) : null}
             </section>
+        </div>
+    )
+}
+
+function VowelPracticeTrainer({ activity, styles, onBack }) {
+    const [round, setRound] = useState(() => buildVowelRound(activity.items))
+    const [currentIndex, setCurrentIndex] = useState(0)
+    const [selectedAnswer, setSelectedAnswer] = useState('')
+    const [answers, setAnswers] = useState([])
+    const currentQuestion = round[currentIndex]
+    const score = answers.filter((answer) => answer.correct).length
+    const progress = Math.round((answers.length / round.length) * 100)
+    const finished = currentIndex >= round.length
+    const missedVowels = [...new Set(answers
+        .filter((answer) => !answer.correct)
+        .map((answer) => answer.question.target.value))]
+
+    function chooseAnswer(option) {
+        if (!currentQuestion || selectedAnswer) return
+
+        const correct = option.value === currentQuestion.answer
+        setSelectedAnswer(option.value)
+        setAnswers((current) => [
+            ...current,
+            {
+                correct,
+                question: currentQuestion,
+                selected: option.label,
+            },
+        ])
+    }
+
+    function nextQuestion() {
+        if (currentIndex >= round.length - 1) {
+            setCurrentIndex(round.length)
+        } else {
+            setCurrentIndex((current) => current + 1)
+        }
+        setSelectedAnswer('')
+    }
+
+    function restartRound() {
+        window.speechSynthesis?.cancel()
+        setRound(buildVowelRound(activity.items))
+        setCurrentIndex(0)
+        setSelectedAnswer('')
+        setAnswers([])
+    }
+
+    function speakCurrentQuestion() {
+        if (!currentQuestion) return
+        speakText(currentQuestion.speakText)
+    }
+
+    if (finished) {
+        return (
+            <section className={`overflow-hidden rounded-[2rem] bg-white/95 shadow-[0_18px_52px_rgba(31,42,68,0.12)] ring-1 ${styles.ring}`}>
+                <div className={`${styles.panel} p-5 sm:p-6`}>
+                    <div className='flex items-start gap-4'>
+                        <button
+                            type='button'
+                            onClick={onBack}
+                            className='inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white text-[#1F2A44] shadow-[0_8px_24px_rgba(31,42,68,0.10)] transition active:scale-95'
+                            aria-label='Volver a retos'
+                        >
+                            <ArrowLeftIcon className='h-6 w-6' />
+                        </button>
+                        <div className='min-w-0'>
+                            <p className='text-xs font-black uppercase tracking-[0.14em] text-[#7A8194]'>Reporte para padres</p>
+                            <h2 className='mt-1 text-3xl font-black leading-tight text-[#1F2A44]'>Ronda terminada</h2>
+                            <p className='mt-2 text-sm font-bold leading-6 text-[#5B6477]'>
+                                Practico sonido, palabra e imagen con las vocales de Aprender.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className='grid gap-4 p-5 sm:grid-cols-3'>
+                    <ResultStat label='Aciertos' value={`${score}/${round.length}`} />
+                    <ResultStat label='Dominio' value={`${Math.round((score / round.length) * 100)}%`} />
+                    <ResultStat label='Retos' value={round.length} />
+                </div>
+
+                <div className='px-5 pb-5'>
+                    <div className='rounded-[1.7rem] bg-[#F8FBFF] p-4 ring-1 ring-[#E7EEF8]'>
+                        <p className='text-xs font-black uppercase tracking-[0.14em] text-[#7A8194]'>Recomendacion</p>
+                        <p className='mt-2 text-base font-black leading-6 text-[#1F2A44]'>
+                            {missedVowels.length
+                                ? `Necesita reforzar: ${missedVowels.join(', ')}.`
+                                : 'Domina esta ronda. Puede repetir para ganar seguridad.'}
+                        </p>
+                    </div>
+                    <div className='mt-4 grid gap-3 sm:grid-cols-2'>
+                        <button
+                            type='button'
+                            onClick={restartRound}
+                            className='min-h-14 rounded-[1.4rem] bg-[#1D4E89] px-5 text-base font-black text-white shadow-[0_8px_0_rgba(29,78,137,0.18)] transition active:translate-y-1 active:shadow-none'
+                        >
+                            Practicar otra vez
+                        </button>
+                        <button
+                            type='button'
+                            onClick={onBack}
+                            className='min-h-14 rounded-[1.4rem] bg-[#F3F4F6] px-5 text-base font-black text-[#1F2A44] shadow-[0_8px_0_rgba(31,42,68,0.08)] transition active:translate-y-1 active:shadow-none'
+                        >
+                            Volver a retos
+                        </button>
+                    </div>
+                </div>
+            </section>
+        )
+    }
+
+    return (
+        <section className={`overflow-hidden rounded-[2rem] bg-white/95 shadow-[0_18px_52px_rgba(31,42,68,0.12)] ring-1 ${styles.ring}`}>
+            <div className={`${styles.panel} p-5 sm:p-6`}>
+                <div className='grid gap-4 sm:grid-cols-[auto_1fr_auto] sm:items-start'>
+                    <button
+                        type='button'
+                        onClick={onBack}
+                        className='inline-flex h-12 w-12 items-center justify-center rounded-full bg-white text-[#1F2A44] shadow-[0_8px_24px_rgba(31,42,68,0.10)] transition active:scale-95'
+                        aria-label='Volver a retos'
+                    >
+                        <ArrowLeftIcon className='h-6 w-6' />
+                    </button>
+                    <div className='min-w-0 sm:pt-1'>
+                        <p className='text-xs font-black uppercase tracking-[0.14em] text-[#7A8194]'>Entrenador de vocales</p>
+                        <h2 className='mt-1 text-3xl font-black leading-tight text-[#1F2A44]'>{activity.title}</h2>
+                        <p className='mt-2 text-sm font-bold leading-6 text-[#5B6477]'>
+                            Ronda de 10 retos con A, E, I, O y U.
+                        </p>
+                    </div>
+                    <div className='shrink-0 rounded-[1.2rem] bg-white/85 px-4 py-3 text-center shadow-sm ring-1 ring-white/80'>
+                        <p className='text-xs font-black uppercase tracking-[0.14em] text-[#7A8194]'>Puntos</p>
+                        <p className='mt-1 text-2xl font-black text-[#1F2A44]'>{score}</p>
+                    </div>
+                </div>
+
+                <div className='mt-5'>
+                    <div className='flex items-center justify-between text-xs font-black uppercase tracking-[0.14em] text-[#7A8194]'>
+                        <span>Reto {currentIndex + 1} de {round.length}</span>
+                        <span>{progress}%</span>
+                    </div>
+                    <div className='mt-2 h-3 overflow-hidden rounded-full bg-white/80'>
+                        <div className='h-full rounded-full bg-[#1D4E89] transition-all' style={{ width: `${progress}%` }} />
+                    </div>
+                </div>
+            </div>
+
+            <div className='grid gap-4 p-5 lg:grid-cols-[1fr_1.15fr]'>
+                <div className='rounded-[1.7rem] bg-[#F8FBFF] p-4 ring-1 ring-[#E7EEF8]'>
+                    <div className='flex items-start justify-between gap-3'>
+                        <div>
+                            <p className='w-fit rounded-full bg-white px-3 py-1 text-xs font-black uppercase tracking-[0.14em] text-[#7A8194]'>{currentQuestion.badge}</p>
+                            <h3 className='mt-3 text-2xl font-black leading-tight text-[#1F2A44]'>{currentQuestion.prompt}</h3>
+                            <p className='mt-2 text-sm font-bold leading-5 text-[#5B6477]'>{currentQuestion.instruction}</p>
+                        </div>
+                        <button
+                            type='button'
+                            onClick={speakCurrentQuestion}
+                            className='inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white text-[#1D4E89] shadow-[0_8px_22px_rgba(31,42,68,0.10)] transition active:scale-95'
+                            aria-label='Escuchar reto'
+                        >
+                            <SpeakerIcon className='h-6 w-6' />
+                        </button>
+                    </div>
+
+                    <VowelQuestionVisual question={currentQuestion} styles={styles} />
+                </div>
+
+                <div className='flex flex-col justify-between gap-4'>
+                    <div className='grid gap-3 sm:grid-cols-3 lg:grid-cols-1'>
+                        {currentQuestion.options.map((option) => {
+                            const selected = selectedAnswer === option.value
+                            const correctOption = option.value === currentQuestion.answer
+                            const showCorrect = selectedAnswer && correctOption
+                            const showWrong = selected && !correctOption
+
+                            return (
+                                <button
+                                    key={`${currentQuestion.id}-${option.value}`}
+                                    type='button'
+                                    onClick={() => chooseAnswer(option)}
+                                    className={`min-h-16 rounded-[1.4rem] px-5 text-lg font-black shadow-[0_7px_0_rgba(31,42,68,0.08)] transition active:translate-y-1 active:shadow-none ${
+                                        showCorrect
+                                            ? 'bg-[#BFE8D4] text-[#1F2A44]'
+                                            : showWrong
+                                                ? 'bg-[#FFC3A1] text-[#1F2A44]'
+                                                : selectedAnswer
+                                                    ? 'bg-[#F8FBFF] text-[#8A91A3]'
+                                                    : 'bg-[#F3F4F6] text-[#1F2A44]'
+                                    }`}
+                                >
+                                    {option.label}
+                                </button>
+                            )
+                        })}
+                    </div>
+
+                    {selectedAnswer ? (
+                        <div className={`rounded-[1.4rem] px-4 py-3 text-sm font-black ${selectedAnswer === currentQuestion.answer ? 'bg-[#EAF8F1] text-[#237A4D]' : 'bg-[#FFF0E8] text-[#A0471D]'}`}>
+                            {selectedAnswer === currentQuestion.answer
+                                ? 'Correcto. Muy bien.'
+                                : `La respuesta correcta es ${currentQuestion.answerLabel}.`}
+                        </div>
+                    ) : null}
+
+                    <button
+                        type='button'
+                        onClick={nextQuestion}
+                        disabled={!selectedAnswer}
+                        className='min-h-14 rounded-[1.4rem] bg-[#1D4E89] px-5 text-base font-black text-white shadow-[0_8px_0_rgba(29,78,137,0.18)] transition enabled:active:translate-y-1 enabled:active:shadow-none disabled:cursor-not-allowed disabled:bg-[#CBD5E1] disabled:shadow-none'
+                    >
+                        {currentIndex >= round.length - 1 ? 'Ver resultado' : 'Siguiente reto'}
+                    </button>
+                </div>
+            </div>
+        </section>
+    )
+}
+
+function VowelQuestionVisual({ question, styles }) {
+    if (question.type === 'image' && question.target.imageUrl) {
+        return (
+            <div className='mt-5 grid gap-3 sm:grid-cols-[150px_1fr] sm:items-center'>
+                <div className='relative aspect-square overflow-hidden rounded-[1.4rem] bg-white shadow-sm ring-1 ring-white'>
+                    <Image
+                        src={question.target.imageUrl}
+                        width={320}
+                        height={320}
+                        alt={question.target.example}
+                        className='h-full w-full object-cover'
+                    />
+                    <span className={`absolute left-3 top-3 flex h-12 w-12 items-center justify-center rounded-full ${styles.sample} text-2xl font-black shadow-sm`}>
+                        ?
+                    </span>
+                </div>
+                <p className='rounded-[1.4rem] bg-white px-4 py-5 text-xl font-black leading-tight text-[#1F2A44] shadow-sm'>
+                    {question.target.word}
+                </p>
+            </div>
+        )
+    }
+
+    if (question.type === 'complete') {
+        return (
+            <div className='mt-5 rounded-[1.5rem] bg-white px-5 py-6 text-center shadow-sm'>
+                <p className='text-xs font-black uppercase tracking-[0.14em] text-[#7A8194]'>Completa</p>
+                <p className='mt-2 text-5xl font-black leading-none text-[#1F2A44]'>{blankFirstLetter(question.target.word)}</p>
+            </div>
+        )
+    }
+
+    if (question.type === 'match') {
+        return (
+            <div className='mt-5 rounded-[1.5rem] bg-white px-5 py-6 text-center shadow-sm'>
+                <p className='text-xs font-black uppercase tracking-[0.14em] text-[#7A8194]'>Vocal</p>
+                <p className={`mx-auto mt-3 flex h-24 w-24 items-center justify-center rounded-[1.5rem] ${styles.sample} text-6xl font-black leading-none`}>
+                    {question.target.value}
+                </p>
+            </div>
+        )
+    }
+
+    if (question.type === 'hidden') {
+        return (
+            <div className='mt-5 rounded-[1.5rem] bg-white px-5 py-6 text-center shadow-sm'>
+                <p className='text-xs font-black uppercase tracking-[0.14em] text-[#7A8194]'>Palabra</p>
+                <p className='mt-2 text-4xl font-black leading-none text-[#1F2A44]'>{question.target.word}</p>
+            </div>
+        )
+    }
+
+    return (
+        <div className='mt-5 rounded-[1.5rem] bg-white px-5 py-6 text-center shadow-sm'>
+            <p className='text-xs font-black uppercase tracking-[0.14em] text-[#7A8194]'>Escucha</p>
+            <div className={`mx-auto mt-3 flex h-24 w-24 items-center justify-center rounded-[1.5rem] ${styles.sample}`}>
+                <SpeakerIcon className='h-11 w-11' />
+            </div>
+        </div>
+    )
+}
+
+function ResultStat({ label, value }) {
+    return (
+        <div className='rounded-[1.5rem] bg-[#F8FBFF] px-4 py-5 text-center ring-1 ring-[#E7EEF8]'>
+            <p className='text-xs font-black uppercase tracking-[0.14em] text-[#7A8194]'>{label}</p>
+            <p className='mt-2 text-3xl font-black leading-none text-[#1F2A44]'>{value}</p>
         </div>
     )
 }

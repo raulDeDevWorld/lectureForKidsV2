@@ -316,44 +316,29 @@ export function StoryReader({ isFavorite, onToggleFavorite, story }) {
 
 function createStorySpeechPhrases(story) {
     const content = Array.isArray(story.content) ? story.content : [story.content]
-    const titlePhrases = createSpeechPhraseUnits(story.title, 'title', 0, SPEECH_SECTION_PAUSE_MS)
+    const titlePhrases = createSpeechParagraphUnits([story.title], 'title', SPEECH_SECTION_PAUSE_MS)
     const contentPhrases = []
-    let contentOffset = 0
 
-    for (const paragraph of content.filter(Boolean)) {
-        const paragraphPhrases = createSpeechPhraseUnits(paragraph, 'content', contentOffset, SPEECH_PARAGRAPH_PAUSE_MS)
-        contentPhrases.push(...paragraphPhrases)
-        contentOffset += paragraphPhrases.reduce((total, phrase) => total + phrase.words.length, 0)
-    }
+    contentPhrases.push(...createSpeechParagraphUnits(content, 'content', SPEECH_PARAGRAPH_PAUSE_MS))
 
     const teachingPhrases = story.teaching
-        ? createSpeechPhraseUnits(story.teaching, 'teaching', 0, 0)
+        ? createSpeechParagraphUnits([story.teaching], 'teaching', 0)
         : []
 
     return [...titlePhrases, ...contentPhrases, ...teachingPhrases]
 }
 
-function createSpeechPhraseUnits(text, section, offset, finalPause) {
-    const phrases = String(text || '')
-        .match(/[^.!?;:]+[.!?;:]?|[^.!?;:]+$/g)
-        ?.map((phrase) => phrase.trim())
-        .filter(Boolean) || []
+function createSpeechParagraphUnits(paragraphs, section, finalPause) {
+    const cleanParagraphs = paragraphs
+        .map((paragraph) => String(paragraph || '').trim())
+        .filter(Boolean)
 
-    let wordOffset = offset
-
-    return phrases.map((phrase, index) => {
-        const words = phrase.split(/\s+/).filter(Boolean)
-        const unit = {
-            pauseAfter: index === phrases.length - 1 ? finalPause : getPhrasePause(phrase),
-            section,
-            text: phrase,
-            wordOffset,
-            words,
-        }
-
-        wordOffset += words.length
-        return unit
-    })
+    return cleanParagraphs.map((paragraph, index) => ({
+        paragraphIndex: index,
+        pauseAfter: index === cleanParagraphs.length - 1 ? finalPause : SPEECH_PARAGRAPH_PAUSE_MS,
+        section,
+        text: paragraph,
+    }))
 }
 
 function speakNextStoryPhrase(queueRef, timeoutRef, utteranceRef, onBoundary, onComplete) {
@@ -366,7 +351,7 @@ function speakNextStoryPhrase(queueRef, timeoutRef, utteranceRef, onBoundary, on
         return
     }
 
-    startPhraseHighlight(unit, timeoutRef, onBoundary)
+    startParagraphHighlight(unit, timeoutRef, onBoundary)
 
     const utterance = new SpeechSynthesisUtterance(unit.text)
     utterance.lang = 'es-ES'
@@ -382,36 +367,17 @@ function speakNextStoryPhrase(queueRef, timeoutRef, utteranceRef, onBoundary, on
     window.speechSynthesis.speak(utterance)
 }
 
-function startPhraseHighlight(unit, timeoutRef, onBoundary) {
-    const words = unit.words.length ? unit.words : unit.text.split(/\s+/).filter(Boolean)
-    const stepMs = getPhraseWordStepMs(unit.text, words)
-    let index = 0
-
-    const highlight = () => {
-        onBoundary({
-            mode: 'word',
-            wordIndex: unit.wordOffset + index,
-            section: unit.section,
-        })
-
-        index += 1
-        if (index >= words.length) return
-
-        timeoutRef.current = window.setTimeout(highlight, stepMs)
+function startParagraphHighlight(unit, timeoutRef, onBoundary) {
+    if (timeoutRef.current) {
+        window.clearTimeout(timeoutRef.current)
+        timeoutRef.current = null
     }
 
-    highlight()
-}
-
-function getPhraseWordStepMs(text, words) {
-    const estimatedDuration = Math.max(900, String(text || '').length * 58)
-    return Math.max(145, Math.min(420, estimatedDuration / Math.max(1, words.length)))
-}
-
-function getPhrasePause(phrase) {
-    if (/[.!?]$/.test(phrase)) return 300
-    if (/[;:]$/.test(phrase)) return 220
-    return 160
+    onBoundary({
+        mode: 'paragraph',
+        paragraphIndex: unit.paragraphIndex,
+        section: unit.section,
+    })
 }
 
 function clearStorySpeechQueue(queueRef, timeoutRef, utteranceRef) {

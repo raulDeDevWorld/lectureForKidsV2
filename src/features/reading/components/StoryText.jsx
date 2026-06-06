@@ -17,7 +17,8 @@ export function StoryText({
     const sectionCompleted = activeSection === 'COMPLETE' || sectionIndex < activeIndex
     const sectionActive = section === activeSection
     const tokens = sectionActive ? renderableTokens : null
-    const displayText = Array.isArray(text) ? text.join('\n\n') : String(text || '')
+    const paragraphs = getTextParagraphs(text)
+    const tokenParagraphs = tokens ? splitTokensByParagraph(tokens) : null
 
     const paragraphClassName = [
         'text-[1.05rem] font-bold leading-9 text-slate-800 sm:text-xl sm:leading-10',
@@ -35,20 +36,63 @@ export function StoryText({
     }, [onLookupWord])
 
     return (
-        <p className={paragraphClassName}>
-            {(tokens || displayText.split(/(\s+)/)).map((token, index) => {
+        <div className='space-y-4'>
+            {paragraphs.map((paragraph, paragraphIndex) => {
+                const paragraphTokens = tokenParagraphs?.[paragraphIndex] || null
+                const isNarratingParagraph = narrationHighlight?.mode === 'paragraph' &&
+                    narrationHighlight.section === section &&
+                    narrationHighlight.paragraphIndex === paragraphIndex
+                const classNames = [
+                    paragraphClassName,
+                    isNarratingParagraph ? 'rounded-[1.35rem] bg-[#BFE8D4] px-3 py-2 text-[#064E3B] ring-2 ring-[#10B981] shadow-[0_5px_0_rgba(16,185,129,0.16)] transition-all duration-200' : '',
+                ].filter(Boolean).join(' ')
+
+                return (
+                    <p key={`${section}-paragraph-${paragraphIndex}`} className={classNames}>
+                        {renderParagraphTokens({
+                            fallbackText: paragraph,
+                            handleLookupWord,
+                            handleWordInteraction,
+                            narrationHighlight,
+                            paragraphTokens,
+                            section,
+                            sectionActive,
+                            sectionCompleted,
+                            selectedTokenKey,
+                        })}
+                    </p>
+                )
+            })}
+        </div>
+    )
+}
+
+function renderParagraphTokens({
+    fallbackText,
+    handleLookupWord,
+    handleWordInteraction,
+    narrationHighlight,
+    paragraphTokens,
+    section,
+    sectionActive,
+    sectionCompleted,
+    selectedTokenKey,
+}) {
+    const displayTokens = paragraphTokens || String(fallbackText || '').split(/(\s+)/)
+
+    return displayTokens.map((token, index) => {
                 if (tokens && token.type !== 'word') {
                     return token.raw.includes('\n') ? <br key={`${section}-${index}`} /> : token.raw
                 }
 
-                if (!tokens && /^\s+$/.test(token)) {
+                if (!paragraphTokens && /^\s+$/.test(token)) {
                     return token.includes('\n') ? <br key={`${section}-${index}`} /> : token
                 }
 
-                const raw = tokens ? token.raw : token
-                const tokenKey = `${section}-${index}`
-                const wordIndex = tokens ? token.wordIndex : getWordIndexFromText(displayText, index)
-                const isNarrating = narrationHighlight?.section === section && (
+                const raw = paragraphTokens ? token.raw : token
+                const tokenKey = paragraphTokens ? `${section}-${token.visualIndex}` : `${section}-${index}`
+                const wordIndex = paragraphTokens ? token.wordIndex : getWordIndexFromText(fallbackText, index)
+                const isNarrating = narrationHighlight?.section === section && narrationHighlight.mode !== 'paragraph' && (
                     (
                         narrationHighlight.mode === 'range' &&
                         wordIndex >= narrationHighlight.startWordIndex &&
@@ -74,8 +118,32 @@ export function StoryText({
                     />
                 )
             })}
-        </p>
-    )
+}
+
+function getTextParagraphs(text) {
+    if (Array.isArray(text)) {
+        return text.map((paragraph) => String(paragraph || '').trim()).filter(Boolean)
+    }
+
+    const normalizedText = String(text || '').trim()
+    if (!normalizedText) return ['']
+
+    return normalizedText.split(/\n{2,}/).map((paragraph) => paragraph.trim()).filter(Boolean)
+}
+
+function splitTokensByParagraph(tokens) {
+    const paragraphs = [[]]
+
+    for (const token of tokens) {
+        if (token.type === 'space' && /\n{2,}/.test(token.raw)) {
+            paragraphs.push([])
+            continue
+        }
+
+        paragraphs[paragraphs.length - 1].push(token)
+    }
+
+    return paragraphs
 }
 
 const WordToken = memo(function WordToken({

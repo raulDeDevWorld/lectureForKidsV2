@@ -81,43 +81,43 @@ function renderParagraphTokens({
     const displayTokens = paragraphTokens || String(fallbackText || '').split(/(\s+)/)
 
     return displayTokens.map((token, index) => {
-                if (tokens && token.type !== 'word') {
-                    return token.raw.includes('\n') ? <br key={`${section}-${index}`} /> : token.raw
-                }
+        if (paragraphTokens && token.type !== 'word') {
+            return token.raw.includes('\n') ? <br key={`${section}-${index}`} /> : token.raw
+        }
 
-                if (!paragraphTokens && /^\s+$/.test(token)) {
-                    return token.includes('\n') ? <br key={`${section}-${index}`} /> : token
-                }
+        if (!paragraphTokens && /^\s+$/.test(token)) {
+            return token.includes('\n') ? <br key={`${section}-${index}`} /> : token
+        }
 
-                const raw = paragraphTokens ? token.raw : token
-                const tokenKey = paragraphTokens ? `${section}-${token.visualIndex}` : `${section}-${index}`
-                const wordIndex = paragraphTokens ? token.wordIndex : getWordIndexFromText(fallbackText, index)
-                const isNarrating = narrationHighlight?.section === section && narrationHighlight.mode !== 'paragraph' && (
-                    (
-                        narrationHighlight.mode === 'range' &&
-                        wordIndex >= narrationHighlight.startWordIndex &&
-                        wordIndex < narrationHighlight.endWordIndex
-                    ) ||
-                    (
-                        narrationHighlight.mode === 'word' &&
-                        narrationHighlight.wordIndex === wordIndex
-                    )
-                )
-                const status = isNarrating ? 'narrating' : sectionCompleted ? 'matched' : sectionActive ? token.status : 'pending'
-                const isSelected = selectedTokenKey === tokenKey
+        const raw = paragraphTokens ? token.raw : token
+        const tokenKey = paragraphTokens ? `${section}-${token.visualIndex}` : `${section}-${index}`
+        const wordIndex = paragraphTokens ? token.wordIndex : getWordIndexFromText(fallbackText, index)
+        const isNarrating = narrationHighlight?.section === section && narrationHighlight.mode !== 'paragraph' && (
+            (
+                narrationHighlight.mode === 'range' &&
+                wordIndex >= narrationHighlight.startWordIndex &&
+                wordIndex < narrationHighlight.endWordIndex
+            ) ||
+            (
+                narrationHighlight.mode === 'word' &&
+                narrationHighlight.wordIndex === wordIndex
+            )
+        )
+        const status = isNarrating ? 'narrating' : sectionCompleted ? 'matched' : sectionActive ? token.status : 'pending'
+        const isSelected = selectedTokenKey === tokenKey
 
-                return (
-                    <WordToken
-                        key={tokenKey}
-                        isSelected={isSelected}
-                        onLookupWord={handleLookupWord}
-                        onWordInteraction={handleWordInteraction}
-                        raw={raw}
-                        status={status}
-                        tokenKey={tokenKey}
-                    />
-                )
-            })}
+        return (
+            <WordToken
+                key={tokenKey}
+                isSelected={isSelected}
+                onLookupWord={handleLookupWord}
+                onWordInteraction={handleWordInteraction}
+                raw={raw}
+                status={status}
+                tokenKey={tokenKey}
+            />
+        )
+    })
 }
 
 function getTextParagraphs(text) {

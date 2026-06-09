@@ -81,9 +81,11 @@ export function LearningLevelOneClient({ modules }) {
                                         alt={item.example}
                                         className='h-full w-full object-cover'
                                     />
-                                    <span className={`absolute left-2 top-2 flex h-10 w-10 items-center justify-center rounded-full ${colors.tile} text-2xl font-black leading-none text-[#1F2A44] shadow-sm`}>
-                                        {item.value}
-                                    </span>
+                                    {activeModule.id !== 'numeros' ? (
+                                        <span className={`absolute left-2 top-2 flex h-10 w-10 items-center justify-center rounded-full ${colors.tile} text-2xl font-black leading-none text-[#1F2A44] shadow-sm`}>
+                                            {item.value}
+                                        </span>
+                                    ) : null}
                                 </span>
                             ) : (
                                 <span className={`flex h-16 w-full items-center justify-center rounded-[1.2rem] ${colors.tile} text-4xl font-black leading-none text-[#1F2A44]`}>

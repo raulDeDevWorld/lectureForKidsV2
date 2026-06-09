@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fabulas-3000-v5'
+const CACHE_NAME = 'fabulas-3000-v6'
 const APP_SHELL = [
   '/',
   '/cuentos',
@@ -41,6 +41,16 @@ const APP_SHELL = [
   '/aprender/abecedario/x_xilofono.webp',
   '/aprender/abecedario/y_yoyo.webp',
   '/aprender/abecedario/z_zapato.webp',
+  '/aprender/numeros/numero_1.webp',
+  '/aprender/numeros/numero_2.webp',
+  '/aprender/numeros/numero_3.webp',
+  '/aprender/numeros/numero_4.webp',
+  '/aprender/numeros/numero_5.webp',
+  '/aprender/numeros/numero_6.webp',
+  '/aprender/numeros/numero_7.webp',
+  '/aprender/numeros/numero_8.webp',
+  '/aprender/numeros/numero_9.webp',
+  '/aprender/numeros/numero_10.webp',
   '/manifest.json',
   '/ambiente.mp3',
   '/tiger.png',

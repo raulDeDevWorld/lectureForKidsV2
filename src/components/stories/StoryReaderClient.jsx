@@ -4,8 +4,7 @@ import dynamic from 'next/dynamic'
 import { useFavorites } from './useFavorites'
 
 const DefaultStoryReader = dynamic(
-    () => import('./StoryReader').then((module) => module.StoryReader),
-    { ssr: false }
+    () => import('./StoryReader').then((module) => module.StoryReader)
 )
 
 export function StoryReaderClient({ ReaderComponent = DefaultStoryReader, story }) {

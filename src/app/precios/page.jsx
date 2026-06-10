@@ -3,15 +3,30 @@ import { ArrowLeftIcon } from '@/components/icons/Icons'
 import { AppShell } from '@/components/layout/AppShell'
 import { PricingTabsClient } from '@/components/pricing/PricingTabsClient'
 import { pricingGroups } from '@/data/pricing'
+import { absoluteUrl, createBreadcrumbJsonLd, createJsonLdScript, createPageMetadata } from '@/lib/seo'
 
-export const metadata = {
-    title: 'Precios | Fabulas 3000',
-    description: 'Planes para acceder a lectura y aprendizaje infantil.',
-}
+export const metadata = createPageMetadata({
+    title: 'Planes de lectura para familias y colegios',
+    description: 'Planes de Lectorin para familias, docentes e instituciones que quieren apoyar el aprendizaje de lectura infantil.',
+    path: '/precios/',
+    keywords: ['app de lectura para colegios', 'planes lectura infantil', 'lectorin precios'],
+})
 
 export default function PricingPage() {
+    const jsonLd = [
+        createBreadcrumbJsonLd([
+            { name: 'Inicio', path: '/' },
+            { name: 'Precios', path: '/precios/' },
+        ]),
+        createPricingCatalogJsonLd(),
+    ]
+
     return (
         <AppShell>
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={createJsonLdScript(jsonLd)}
+            />
             <div className='mx-auto max-w-5xl space-y-5 pb-4'>
                 <header className='rounded-[2rem] bg-white/90 p-4 shadow-[0_12px_34px_rgba(31,42,68,0.08)] ring-1 ring-white/80 backdrop-blur sm:p-5'>
                     <div className='flex items-center gap-3'>
@@ -30,4 +45,31 @@ export default function PricingPage() {
             </div>
         </AppShell>
     )
+}
+
+function createPricingCatalogJsonLd() {
+    return {
+        '@context': 'https://schema.org',
+        '@type': 'OfferCatalog',
+        name: 'Planes de Lectorin',
+        description: 'Planes para familias, docentes e instituciones que usan Lectorin.',
+        url: absoluteUrl('/precios/'),
+        itemListElement: pricingGroups.flatMap((group) => (
+            group.plans.map((plan) => ({
+                '@type': 'Offer',
+                name: `${group.title} ${plan.name}`,
+                url: absoluteUrl('/precios/'),
+                price: String(plan.offerPrice ?? plan.normalPrice),
+                priceCurrency: 'BOB',
+                category: group.title,
+                availability: 'https://schema.org/InStock',
+                description: plan.description || group.description,
+                itemOffered: {
+                    '@type': 'Service',
+                    name: group.title,
+                    description: group.description,
+                },
+            }))
+        )),
+    }
 }

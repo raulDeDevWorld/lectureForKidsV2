@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import { ArrowRightIcon, BookIcon, StarIcon } from '@/components/icons/Icons'
 import { RoundedIconButton } from '@/components/ui/RoundedIconButton'
@@ -38,10 +39,9 @@ export function HomeHero({ stories = [] }) {
     return (
         <header className='space-y-5'>
             <div className='flex items-center justify-between'>
-                <Link href='/' aria-label='Ir al inicio' className='flex h-14 w-14 items-center justify-center rounded-[1.4rem] bg-white p-1 shadow-[0_10px_28px_rgba(31,42,68,0.10)]'>
-                    <span className='flex h-12 w-12 items-center justify-center rounded-[1.15rem] bg-[#BFE8D4] text-xl font-black text-[#1F2A44]'>
-                        F
-                    </span>
+                <Link href='/' aria-label='Ir al inicio' className='inline-flex h-14 items-center gap-2 rounded-[1.4rem] bg-white px-2.5 pr-4 shadow-[0_10px_28px_rgba(31,42,68,0.10)]'>
+                    <Image src='/logo-lectorin-192.png' alt='' width={44} height={44} className='h-11 w-11 shrink-0 rounded-[1rem] object-cover shadow-sm' priority />
+                    <span className='text-xl font-black leading-none text-[#1F2A44]'>Lectorin</span>
                 </Link>
                 <RoundedIconButton label='Ver favoritos'>
                     <StarIcon className='h-6 w-6 text-[#FFD166]' />
@@ -53,10 +53,10 @@ export function HomeHero({ stories = [] }) {
                     <div className='flex flex-col justify-between gap-6 bg-[linear-gradient(135deg,#FFF9EF,#EAF7FF)] p-5 sm:p-6 lg:p-7'>
                         <div>
                             <p className='inline-flex rounded-full bg-white/80 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-[#7A8194] shadow-sm'>
-                                Lectura del dia
+                                Aprende a leer
                             </p>
                             <h1 className='mt-4 text-4xl font-black leading-[0.98] text-[#1F2A44] sm:text-5xl'>
-                                ¡Hola! Elige una historia y empieza en un minuto.
+                                Aprende a leer con cuentos, voz y juegos.
                             </h1>
                         </div>
 

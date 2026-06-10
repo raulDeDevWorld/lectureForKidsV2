@@ -5,13 +5,41 @@ import { AppShell } from '@/components/layout/AppShell'
 import { RoundedIconButton } from '@/components/ui/RoundedIconButton'
 import { getCategories, getStories } from '@/data/fabulas'
 import { StoriesListClient } from '@/components/stories/StoriesListClient'
+import { createBreadcrumbJsonLd, createItemListJsonLd, createJsonLdScript, createPageMetadata } from '@/lib/seo'
+
+export const metadata = createPageMetadata({
+    title: 'Cuentos infantiles para aprender a leer',
+    description: 'Lee cuentos infantiles y fabulas con imagenes, moralejas y practica de lectura en voz alta para ninos que estan aprendiendo a leer.',
+    path: '/cuentos/',
+    keywords: ['cuentos para aprender a leer', 'fabulas para ninos', 'cuentos con moraleja'],
+})
 
 export default function StoriesPage() {
     const stories = getStories()
     const categories = getCategories()
+    const jsonLd = [
+        createBreadcrumbJsonLd([
+            { name: 'Inicio', path: '/' },
+            { name: 'Cuentos', path: '/cuentos/' },
+        ]),
+        createItemListJsonLd({
+            name: 'Cuentos infantiles para aprender a leer',
+            description: 'Coleccion de cuentos infantiles y fabulas con moralejas para practicar lectura.',
+            path: '/cuentos/',
+            items: stories.map((story) => ({
+                name: story.title,
+                path: `/cuentos/${story.slug}/`,
+                image: story.imageUrl,
+            })),
+        }),
+    ]
 
     return (
         <AppShell>
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={createJsonLdScript(jsonLd)}
+            />
             <div className='space-y-5'>
                 <header className='rounded-[2rem] bg-white/75 p-4 shadow-[0_12px_34px_rgba(31,42,68,0.08)] backdrop-blur'>
                     <div className='flex items-center justify-between gap-3'>

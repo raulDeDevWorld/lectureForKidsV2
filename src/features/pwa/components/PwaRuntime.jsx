@@ -21,7 +21,7 @@ export function PwaRuntime() {
                 caches.keys()
                     .then((keys) => {
                         keys
-                            .filter((key) => key.startsWith('fabulas-3000-'))
+                            .filter((key) => key.startsWith('fabulas-3000-') || key.startsWith('lectorin-'))
                             .forEach((key) => caches.delete(key))
                     })
                     .catch(() => {})

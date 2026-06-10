@@ -1,7 +1,7 @@
 'use client'
 
+import Image from 'next/image'
 import { useEffect, useState } from 'react'
-import { DownloadIcon } from '@/components/icons/Icons'
 
 function isLocalDevelopmentHost() {
     return ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname)
@@ -71,12 +71,16 @@ export function PwaInstallPrompt({ compact = false, variant = 'button' }) {
         return (
             <section className='overflow-hidden rounded-[2rem] bg-[#172554] p-4 text-white shadow-[0_16px_42px_rgba(31,42,68,0.16)] ring-1 ring-white/60 sm:p-5'>
                 <div className='flex items-start gap-3'>
-                    <div className='flex h-12 w-12 shrink-0 items-center justify-center rounded-[1rem] bg-[#FFD166] text-[#1F2A44] shadow-sm'>
-                        <DownloadIcon className='h-6 w-6' />
-                    </div>
+                    <Image
+                        src='/logo-lectorin-192.png'
+                        alt=''
+                        width={48}
+                        height={48}
+                        className='h-12 w-12 shrink-0 rounded-[1rem] object-cover shadow-sm ring-1 ring-white/20'
+                    />
                     <div className='min-w-0 flex-1'>
                         <p className='text-xs font-black uppercase tracking-[0.14em] text-[#BFE8D4]'>Acceso rapido</p>
-                        <h2 className='mt-1 text-xl font-black leading-tight'>Instala Fabulas 3000</h2>
+                        <h2 className='mt-1 text-xl font-black leading-tight'>Instala Lectorin</h2>
                         <p className='mt-1 text-sm font-bold leading-5 text-white/78'>
                             Abrela desde la pantalla de inicio y entra directo a cuentos y actividades.
                         </p>

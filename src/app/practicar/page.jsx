@@ -3,15 +3,39 @@ import { ArrowLeftIcon } from '@/components/icons/Icons'
 import { AppShell } from '@/components/layout/AppShell'
 import { PracticePageClient } from '@/components/practice/PracticePageClient'
 import { levelOneModules } from '@/data/learningLevelOne'
+import { createBreadcrumbJsonLd, createItemListJsonLd, createJsonLdScript, createPageMetadata } from '@/lib/seo'
 
-export const metadata = {
-    title: 'Practicar | Fabulas 3000',
-    description: 'Juegos de practica para reforzar vocales, letras, numeros y silabas.',
-}
+export const metadata = createPageMetadata({
+    title: 'Practicar lectura con juegos infantiles',
+    description: 'Juegos de practica para reforzar lectura inicial, vocales, letras, numeros, silabas, palabras e imagenes en Lectorin.',
+    path: '/practicar/',
+    keywords: ['juegos para aprender a leer', 'practicar lectura', 'lectura inicial para ninos'],
+})
 
 export default function PracticePage() {
+    const jsonLd = [
+        createBreadcrumbJsonLd([
+            { name: 'Inicio', path: '/' },
+            { name: 'Practicar', path: '/practicar/' },
+        ]),
+        createItemListJsonLd({
+            name: 'Juegos para practicar lectura',
+            description: 'Actividades de practica para vocales, letras, numeros y silabas.',
+            path: '/practicar/',
+            items: levelOneModules.map((learningModule) => ({
+                name: learningModule.title,
+                path: `/aprender/${learningModule.id}/`,
+                image: learningModule.items?.[0]?.imageUrl,
+            })),
+        }),
+    ]
+
     return (
         <AppShell>
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={createJsonLdScript(jsonLd)}
+            />
             <div className='mx-auto max-w-5xl space-y-5 pb-4'>
                 <header className='rounded-[2rem] bg-white/90 p-4 shadow-[0_12px_34px_rgba(31,42,68,0.08)] ring-1 ring-white/80 backdrop-blur sm:p-5'>
                     <div className='flex items-center gap-3'>

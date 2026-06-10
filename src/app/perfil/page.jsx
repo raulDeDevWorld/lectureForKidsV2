@@ -2,11 +2,14 @@ import Link from 'next/link'
 import { ArrowLeftIcon } from '@/components/icons/Icons'
 import { AppShell } from '@/components/layout/AppShell'
 import { ProfilePageClient } from '@/features/auth/components/ProfilePageClient'
+import { createPageMetadata, noIndexRobots } from '@/lib/seo'
 
-export const metadata = {
-    title: 'Perfil | Fabulas 3000',
-    description: 'Gestiona tu cuenta, favoritos y acceso en Fabulas 3000.',
-}
+export const metadata = createPageMetadata({
+    title: 'Mi cuenta',
+    description: 'Gestiona tu cuenta, favoritos y acceso en Lectorin.',
+    path: '/perfil/',
+    robots: noIndexRobots,
+})
 
 export default function ProfilePage() {
     return (
@@ -20,7 +23,7 @@ export default function ProfilePage() {
                         <div className='min-w-0'>
                             <p className='text-xs font-black uppercase tracking-[0.14em] text-[#7A8194]'>Perfil</p>
                             <h1 className='text-3xl font-black leading-tight text-[#1F2A44]'>Mi cuenta</h1>
-                            <p className='mt-1 max-w-2xl text-sm font-bold leading-6 text-[#7A8194]'>Sesion, plan y accesos principales de Fabulas 3000.</p>
+                            <p className='mt-1 max-w-2xl text-sm font-bold leading-6 text-[#7A8194]'>Sesion, plan y accesos principales de Lectorin.</p>
                         </div>
                     </div>
                 </header>

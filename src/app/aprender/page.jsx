@@ -2,15 +2,39 @@ import Link from 'next/link'
 import { ArrowLeftIcon, ArrowRightIcon, BookIcon, MicrophoneIcon, StarIcon, TicketIcon } from '@/components/icons/Icons'
 import { AppShell } from '@/components/layout/AppShell'
 import { levelOneModules } from '@/data/learningLevelOne'
+import { createBreadcrumbJsonLd, createItemListJsonLd, createJsonLdScript, createPageMetadata } from '@/lib/seo'
 
-export const metadata = {
-    title: 'Aprender | Fabulas 3000',
-    description: 'Practica vocales, abecedario, numeros y silabas.',
-}
+export const metadata = createPageMetadata({
+    title: 'Aprender a leer: vocales, letras, numeros y silabas',
+    description: 'Actividades infantiles para aprender a leer con vocales, abecedario, numeros escritos, silabas, palabras faciles, imagenes y voz.',
+    path: '/aprender/',
+    keywords: ['vocales para aprender a leer', 'abecedario para ninos', 'silabas para aprender a leer'],
+})
 
 export default function LearnPage() {
+    const jsonLd = [
+        createBreadcrumbJsonLd([
+            { name: 'Inicio', path: '/' },
+            { name: 'Aprender', path: '/aprender/' },
+        ]),
+        createItemListJsonLd({
+            name: 'Actividades para aprender a leer',
+            description: 'Vocales, abecedario, numeros y silabas para lectura inicial.',
+            path: '/aprender/',
+            items: levelOneModules.map((learningModule) => ({
+                name: learningModule.title,
+                path: `/aprender/${learningModule.id}/`,
+                image: learningModule.items?.[0]?.imageUrl,
+            })),
+        }),
+    ]
+
     return (
         <AppShell>
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={createJsonLdScript(jsonLd)}
+            />
             <div className='space-y-5'>
                 <header className='rounded-[2rem] bg-white/80 p-4 shadow-[0_12px_34px_rgba(31,42,68,0.08)] ring-1 ring-white/80 backdrop-blur'>
                     <div className='flex items-center gap-3'>

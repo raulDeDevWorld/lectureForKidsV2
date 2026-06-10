@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fabulas-3000-v6'
+const CACHE_NAME = 'lectorin-v10'
 const APP_SHELL = [
   '/',
   '/cuentos',
@@ -53,7 +53,15 @@ const APP_SHELL = [
   '/aprender/numeros/numero_10.webp',
   '/manifest.json',
   '/ambiente.mp3',
-  '/tiger.png',
+  '/favicon-16x16.png',
+  '/favicon-32x32.png',
+  '/lectorin-logo.webp',
+  '/logo-lectorin-192.png',
+  '/logo-lectorin-512.png',
+  '/logo-lectorin-maskable-192.png',
+  '/logo-lectorin-maskable-512.png',
+  '/apple-touch-icon.png',
+  '/og-lectorin.webp',
   '/stories/el_leon_y_el_raton.webp',
   '/stories/la_liebre_y_la_tortuga.webp',
   '/stories/la_zorra_y_las_uvas.webp',

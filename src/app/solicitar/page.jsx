@@ -3,11 +3,14 @@ import { Suspense } from 'react'
 import { ArrowLeftIcon } from '@/components/icons/Icons'
 import { AppShell } from '@/components/layout/AppShell'
 import { PlanRequestClient } from '@/components/pricing/PlanRequestClient'
+import { createPageMetadata, noIndexRobots } from '@/lib/seo'
 
-export const metadata = {
-    title: 'Solicitar plan | Fabulas 3000',
-    description: 'Completa tus datos para solicitar un plan.',
-}
+export const metadata = createPageMetadata({
+    title: 'Solicitar plan',
+    description: 'Completa tus datos para solicitar un plan de Lectorin.',
+    path: '/solicitar/',
+    robots: noIndexRobots,
+})
 
 export default function RequestPlanPage() {
     return (

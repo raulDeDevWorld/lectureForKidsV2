@@ -9,7 +9,12 @@
     "start": "next start",
     "test": "node --test src/lib/*.test.js",
     "lint": "eslint .",
-    "optimize:stories": "node scripts/optimize-stories.mjs"
+    "optimize:aprender": "node scripts/optimize-public-images.mjs --dir=public/aprender",
+    "optimize:images": "node scripts/optimize-public-images.mjs",
+    "optimize:images:dry": "node scripts/optimize-public-images.mjs --dry-run",
+    "optimize:stories": "node scripts/optimize-public-images.mjs --dir=public/stories",
+    "deploy": "node scripts/deploy-s3-cloudfront.mjs deploy",
+    "invalidate": "node scripts/deploy-s3-cloudfront.mjs invalidate"
   },
   "dependencies": {
     "@react-pdf/renderer": "^4.5.1",
